@@ -10,6 +10,12 @@ Unhooked now supports three types of pet displays:
 2. **Lock Screen Widgets** - Circular and Rectangular
 3. **Live Activity** - Dynamic Island (iPhone 14 Pro and later)
 
+## Important Note
+
+⚠️ **The widget files are currently in the main app target and need to be moved to a Widget Extension target to function.**
+
+The widget code is prepared and ready, but requires these setup steps in Xcode to activate.
+
 ## Setup Steps
 
 ### 1. Create Widget Extension Target
@@ -21,6 +27,7 @@ Unhooked now supports three types of pet displays:
 3. Name it: `UnhookedWidgets`
 4. **Include Configuration Intent**: No (uncheck)
 5. Click **Activate** when prompted
+6. **Delete** the default `UnhookedWidgets.swift` and `UnhookedWidgetsBundle.swift` files that Xcode creates
 
 ### 2. Configure App Group
 
@@ -37,21 +44,29 @@ Widgets run in a separate process and need shared data access via App Groups.
 6. Select **UnhookedWidgets** target
 7. Repeat steps 2-5 with the same group ID
 
-### 3. Add Required Files to Widget Target
+### 3. Move Widget Files to Widget Target
 
 **In Xcode Project Navigator:**
 
-1. Select the following files:
-   - `Unhooked/Models/Pet.swift`
-   - `Unhooked/Models/Ledger.swift`
-   - `Unhooked/Services/WidgetService.swift`
+1. **Move** these files to the Widget Extension target:
+   - `Unhooked/Widgets/PetWidget.swift` → Set target to **UnhookedWidgets**
+   - `Unhooked/Widgets/PetLiveActivity.swift` → Set target to **UnhookedWidgets**
 
-2. In **File Inspector** (right panel), under **Target Membership**:
-   - Check **UnhookedWidgets** for each file
+2. **Add** these model files to BOTH targets (keep in main app AND add to widget):
+   - `Unhooked/Models/Pet.swift` - Check **UnhookedWidgets** target membership
+   - `Unhooked/Models/Ledger.swift` - Check **UnhookedWidgets** target membership
 
-3. Replace the default `UnhookedWidgets.swift` and `UnhookedWidgetsBundle.swift` with:
-   - `Unhooked/Widgets/PetWidget.swift`
-   - `Unhooked/Widgets/PetLiveActivity.swift`
+3. In `PetWidget.swift`, **uncomment** the `@main` attribute:
+   ```swift
+   @main  // Uncomment this line
+   struct UnhookedWidgets: WidgetBundle {
+       var body: some Widget {
+           PetWidget()
+       }
+   }
+   ```
+
+**Important:** The widget files must be in the Widget Extension target to work. They won't function in the main app target.
 
 ### 4. Configure Live Activity (Dynamic Island)
 

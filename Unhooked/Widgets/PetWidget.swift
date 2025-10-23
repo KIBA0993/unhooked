@@ -390,13 +390,15 @@ struct PetWidgetView: View {
 }
 
 // MARK: - Widget Bundle
+// Note: This will have @main when moved to Widget Extension target
+// For now, it's commented out to avoid conflict with UnhookedApp @main
 
-@main
-struct UnhookedWidgets: WidgetBundle {
-    var body: some Widget {
-        PetWidget()
-    }
-}
+// @main
+// struct UnhookedWidgets: WidgetBundle {
+//     var body: some Widget {
+//         PetWidget()
+//     }
+// }
 
 #Preview(as: .systemSmall) {
     PetWidget()
