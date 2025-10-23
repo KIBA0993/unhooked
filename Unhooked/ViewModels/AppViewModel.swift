@@ -23,6 +23,7 @@ class AppViewModel {
     let iapService: IAPService  // Public for view access
     private let analyticsService: AnalyticsService
     private let featureFlagService: FeatureFlagService
+    private let widgetService: WidgetService
     
     // Persistent user identifier (syncs across devices via iCloud)
     private let userId: UUID = {
@@ -71,6 +72,8 @@ class AppViewModel {
     var showCosmeticsShop = false
     var showRecoveryModal = false
     var recoveryAction: RecoveryActionType?
+    var currentAnimation: PetAnimation = .idle
+    var trickVariant: Int = 0
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -97,6 +100,7 @@ class AppViewModel {
         )
         self.analyticsService = AnalyticsService(modelContext: modelContext)
         self.featureFlagService = FeatureFlagService(modelContext: modelContext)
+        self.widgetService = WidgetService(modelContext: modelContext)
         
         Task {
             await initialize()
@@ -152,6 +156,20 @@ class AppViewModel {
     private func updateBalances() {
         energyBalance = wallet?.energyBalance ?? 0
         gemsBalance = wallet?.gemsBalance ?? 0
+        
+        // Update widgets
+        if let pet = currentPet {
+            widgetService.updateWidgets(
+                pet: pet,
+                energyBalance: energyBalance,
+                gemsBalance: gemsBalance
+            )
+            
+            // Update Live Activity (Dynamic Island)
+            if #available(iOS 16.2, *) {
+                widgetService.updateLiveActivity(pet: pet, energyBalance: energyBalance)
+            }
+        }
     }
     
     // MARK: - Daily Reset
@@ -186,6 +204,29 @@ class AppViewModel {
         }
     }
     
+    // MARK: - Usage Tracking
+    
+    func updateUsage(usageMinutes: Int, limitMinutes: Int) {
+        guard let pet = currentPet else { return }
+        
+        pet.currentUsage = usageMinutes
+        pet.currentLimit = limitMinutes
+        
+        // Calculate and store energy award (will be applied at daily reset)
+        let energyAwarded = economyService.calculateEnergyFromUsage(
+            usageMinutes: usageMinutes,
+            limitMinutes: limitMinutes
+        )
+        pet.lastEnergyAward = energyAwarded
+        
+        do {
+            try modelContext.save()
+            print("📊 Usage updated: \(usageMinutes)/\(limitMinutes) min → \(energyAwarded) Energy")
+        } catch {
+            print("❌ Failed to update usage: \(error)")
+        }
+    }
+    
     // MARK: - Pet Actions
     
     func feedPet(foodItemId: String) async {
@@ -214,6 +255,41 @@ class AppViewModel {
             }
         } catch {
             print("❌ Feed error: \(error)")
+        }
+    }
+    
+    func triggerAnimation(_ animation: PetAnimation, variant: Int? = nil) {
+        currentAnimation = animation
+        if let v = variant {
+            trickVariant = v
+        }
+        
+        // Reset to idle after animation duration
+        let duration: Double = {
+            switch animation {
+            case .idle: return 0
+            case .trick: return 1.2
+            case .pet: return 0.6
+            case .nap: return 4.5
+            }
+        }()
+        
+        if duration > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                self.currentAnimation = .idle
+            }
+        }
+    }
+    
+    func updateMood(delta: Int) {
+        guard let pet = currentPet else { return }
+        
+        pet.mood = max(0, min(10, pet.mood + delta))
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("❌ Failed to update mood: \(error)")
         }
     }
     
@@ -352,5 +428,155 @@ class AppViewModel {
         guard let pet = currentPet else { return nil }
         return healthService.getVisualEffects(for: pet)
     }
+    
+    // MARK: - Debug Functions
+    
+    #if DEBUG
+    func debugAddGems(_ amount: Int) {
+        do {
+            try economyService.awardGems(
+                userId: userId,
+                amount: amount,
+                reason: .debug,
+                idempotencyKey: UUID().uuidString
+            )
+            updateBalances()
+            print("🐛 DEBUG: Added \(amount) Gems")
+        } catch {
+            print("❌ Debug add gems error: \(error)")
+        }
+    }
+    
+    func debugSetUnfedDays(_ days: Int) {
+        guard let pet = currentPet else { return }
+        
+        pet.consecutiveUnfedDays = days
+        
+        // Update health state based on days
+        if days >= 4 {
+            pet.healthState = .dead
+            pet.deadAt = Date()
+        } else if days >= 2 {
+            pet.healthState = .sick
+            pet.deadAt = nil
+        } else {
+            pet.healthState = .healthy
+            pet.deadAt = nil
+        }
+        
+        do {
+            try modelContext.save()
+            print("🐛 DEBUG: Set unfed days to \(days)")
+        } catch {
+            print("❌ Debug set unfed days error: \(error)")
+        }
+    }
+    
+    func debugSetGrowthProgress(_ progress: Int) {
+        guard let pet = currentPet else { return }
+        
+        pet.growthProgress = progress
+        
+        do {
+            try modelContext.save()
+            print("🐛 DEBUG: Set growth progress to \(progress)")
+        } catch {
+            print("❌ Debug set growth error: \(error)")
+        }
+    }
+    
+    func debugResetGame() {
+        // Delete current pet
+        if let pet = currentPet {
+            modelContext.delete(pet)
+        }
+        
+        // Reset wallet
+        do {
+            let wallet = try economyService.getWallet(userId: userId)
+            wallet.energyBalance = 50
+            wallet.gemsBalance = 0
+            
+            // Create new pet
+            let newPet = Pet(userId: userId, species: .cat)
+            modelContext.insert(newPet)
+            
+            try modelContext.save()
+            
+            currentPet = newPet
+            updateBalances()
+            
+            print("🐛 DEBUG: Game reset")
+        } catch {
+            print("❌ Debug reset error: \(error)")
+        }
+    }
+    
+    func debugSetTestState(_ state: String) {
+        guard let pet = currentPet else { return }
+        
+        switch state {
+        case "healthy":
+            pet.healthState = .healthy
+            pet.consecutiveUnfedDays = 0
+            pet.deadAt = nil
+            pet.fragileUntil = nil
+            pet.fullness = 80
+            pet.mood = 5
+            pet.growthProgress = 20
+            do {
+                try economyService.awardGems(userId: userId, amount: 50, reason: .debug, idempotencyKey: UUID().uuidString)
+                try economyService.awardEnergy(userId: userId, amount: 100, reason: .debug)
+            } catch {}
+            
+        case "sick":
+            pet.healthState = .sick
+            pet.consecutiveUnfedDays = 2
+            pet.deadAt = nil
+            pet.fullness = 20
+            pet.mood = 2
+            pet.growthProgress = 50
+            do {
+                try economyService.awardGems(userId: userId, amount: 150, reason: .debug, idempotencyKey: UUID().uuidString)
+                try economyService.awardEnergy(userId: userId, amount: 150, reason: .debug)
+            } catch {}
+            
+        case "dead":
+            pet.healthState = .dead
+            pet.consecutiveUnfedDays = 4
+            pet.deadAt = Date()
+            pet.fullness = 0
+            pet.mood = 0
+            pet.growthProgress = 75
+            do {
+                try economyService.awardGems(userId: userId, amount: 500, reason: .debug, idempotencyKey: UUID().uuidString)
+            } catch {}
+            
+        case "advanced":
+            pet.healthState = .healthy
+            pet.consecutiveUnfedDays = 0
+            pet.deadAt = nil
+            pet.fragileUntil = nil
+            pet.fullness = 90
+            pet.mood = 8
+            pet.growthProgress = 350
+            do {
+                try economyService.awardGems(userId: userId, amount: 200, reason: .debug, idempotencyKey: UUID().uuidString)
+                try economyService.awardEnergy(userId: userId, amount: 200, reason: .debug)
+            } catch {}
+            
+        default:
+            break
+        }
+        
+        do {
+            try modelContext.save()
+            updateBalances()
+            print("🐛 DEBUG: Set test state to \(state)")
+        } catch {
+            print("❌ Debug set test state error: \(error)")
+        }
+    }
+    #endif
 }
 

@@ -25,10 +25,19 @@ final class Pet {
     var fullness: Double = 100.0  // 0-100%
     var mood: Int = 5  // 1-10 scale
     
+    // Growth & Evolution
+    var growthProgress: Int = 0  // Progress towards next evolution stage
+    
     // Daily tracking
     var fedToday: Bool = false
     var lastFeedAmount: Int = 0
     var dailyBuffAccumulated: Double = 0.0
+    var todayFoodSpend: Int = 0  // Total energy spent on food today
+    var lastEnergyAward: Int = 0  // Last daily energy award amount
+    
+    // Usage tracking
+    var currentUsage: Int = 0  // Minutes of screen time today
+    var currentLimit: Int = 0  // Daily limit in minutes
     
     init(
         id: UUID = UUID(),

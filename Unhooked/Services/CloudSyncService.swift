@@ -89,7 +89,9 @@ class CloudSyncService: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             print("🔄 iCloud status changed")
-            self?.checkiCloudStatus()
+            Task { @MainActor [weak self] in
+                self?.checkiCloudStatus()
+            }
         }
     }
     

@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  Unhooked
 //
-//  Main home screen with pet
+//  Main home screen with pet - Redesigned with retro aesthetic
 //
 
 import SwiftUI
@@ -11,308 +11,367 @@ import SwiftData
 struct HomeView: View {
     @Environment(AppViewModel.self) private var viewModel
     @State private var showingFoodSheet = false
-    @State private var showingCosmeticsSheet = false
+    @State private var showingRecoverySheet = false
+    
+    private var pet: Pet? {
+        viewModel.currentPet
+    }
+    
+    private var stageInfo: (stage: Int, current: EvolutionStage, next: EvolutionStage?) {
+        EvolutionStages.getCurrentStage(progress: pet?.growthProgress ?? 0)
+    }
+    
+    private var petMood: PetMood {
+        guard let pet = pet else { return .neutral }
+        
+        if pet.healthState == .dead || pet.healthState == .sick {
+            return .sad
+        }
+        
+        if pet.fullness > 70 && pet.mood >= 7 {
+            return .happy
+        }
+        
+        if pet.fullness < 30 {
+            return .sad
+        }
+        
+        return .neutral
+    }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    // Wallet Header
-                    walletHeader
-                    
-                    // Health Banner (if sick or dead)
-                    if let pet = viewModel.currentPet {
-                        if pet.isSick {
-                            sickBanner
-                        } else if pet.isDead {
-                            deadBanner
-                        }
+        ZStack {
+            // Background - solid light lavender
+            RetroColors.background
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Health Banner (if needed)
+                    if let pet = pet {
+                        HealthBanner(
+                            healthState: pet.healthState,
+                            consecutiveUnfedDays: pet.consecutiveUnfedDays,
+                            isFragile: pet.isFragile,
+                            onFeed: {
+                                showingFoodSheet = true
+                            },
+                            onCure: {
+                                viewModel.showRecoveryOptions(for: .cure)
+                                showingRecoverySheet = true
+                            },
+                            onRevive: {
+                                viewModel.showRecoveryOptions(for: .revive)
+                                showingRecoverySheet = true
+                            },
+                            onRestart: {
+                                viewModel.showRecoveryOptions(for: .restart)
+                                showingRecoverySheet = true
+                            }
+                        )
                     }
                     
-                    // Pet Display
-                    petView
-                    
-                    Spacer()
-                    
-                    // Action Buttons
-                    actionButtons
+                    // Main Pet Card
+                    VStack(spacing: 0) {
+                        petCard
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical)
+            }
+            
+            // Debug Panel (DEBUG only)
+            #if DEBUG
+            if let pet = pet {
+                DebugPanel(
+                    currentGems: viewModel.gemsBalance,
+                    currentUnfedDays: pet.consecutiveUnfedDays,
+                    currentGrowthProgress: pet.growthProgress,
+                    onAddGems: { amount in
+                        viewModel.debugAddGems(amount)
+                    },
+                    onSetUnfedDays: { days in
+                        viewModel.debugSetUnfedDays(days)
+                    },
+                    onSetGrowthProgress: { progress in
+                        viewModel.debugSetGrowthProgress(progress)
+                    },
+                    onResetGame: {
+                        viewModel.debugResetGame()
+                    },
+                    onSetTestState: { state in
+                        viewModel.debugSetTestState(state.rawValue.lowercased())
+                    }
+                )
+            }
+            #endif
+        }
+        .sheet(isPresented: $showingFoodSheet) {
+            FoodShopView()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: $showingRecoverySheet) {
+            if let action = viewModel.recoveryAction {
+                RecoveryModal(
+                    action: action,
+                    gems: viewModel.gemsBalance,
+                    onConfirm: {
+                        Task {
+                            await viewModel.performRecovery()
+                        }
+                    }
+                )
+            }
+        }
+    }
+    
+    // MARK: - Pet Card
+    
+    private var petCard: some View {
+        VStack(spacing: 16) {
+            // Header with currency and stage
+            HStack(alignment: .top) {
+                CurrencyDisplay(
+                    energy: viewModel.energyBalance,
+                    gems: viewModel.gemsBalance
+                )
+                
+                Spacer()
+                
+                if let pet = pet {
+                    StageIndicator(
+                        currentStage: stageInfo.stage,
+                        growthProgress: pet.growthProgress,
+                        species: pet.species
+                    )
                 }
             }
-            .navigationTitle("Unhooked")
-            .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showingFoodSheet) {
-                FoodShopView()
-                    .environment(viewModel)
-            }
-            .sheet(isPresented: $showingCosmeticsSheet) {
-                CosmeticsShopView()
-                    .environment(viewModel)
-            }
-        }
-    }
-    
-    // MARK: - Wallet Header
-    
-    private var walletHeader: some View {
-        HStack(spacing: 20) {
-            // Energy
-            HStack(spacing: 8) {
-                Image(systemName: "bolt.fill")
-                    .foregroundStyle(.yellow)
-                Text("\(viewModel.energyBalance)")
-                    .font(.headline)
-                    .monospacedDigit()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(.ultraThinMaterial, in: Capsule())
             
-            // Gems
-            HStack(spacing: 8) {
-                Image(systemName: "diamond.fill")
-                    .foregroundStyle(.cyan)
-                Text("\(viewModel.gemsBalance)")
-                    .font(.headline)
-                    .monospacedDigit()
+            // Daily Check-In
+            if let pet = pet {
+                DailyCheckIn(
+                    currentUsage: pet.currentUsage,
+                    currentLimit: pet.currentLimit,
+                    onCheckIn: { usage, limit in
+                        viewModel.updateUsage(usageMinutes: usage, limitMinutes: limit)
+                    }
+                )
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(.ultraThinMaterial, in: Capsule())
             
-            Spacer()
-        }
-        .padding()
-    }
-    
-    // MARK: - Health Banners
-    
-    private var sickBanner: some View {
-        VStack(spacing: 8) {
+            // Stage Name Badge
             HStack {
-                Image(systemName: "heart.text.square.fill")
-                    .foregroundStyle(.orange)
-                    .font(.title2)
+                Spacer()
                 
-                Text("Your friend is sick")
-                    .font(.headline)
+                HStack(spacing: 8) {
+                    Text(stageInfo.current.name.uppercased())
+                        .font(.system(size: 18, weight: .black))
+                    
+                    Text(stageInfo.current.emoji)
+                        .font(.system(size: 22))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(RetroColors.purple)
+                .foregroundColor(.black)
+                .retroBorder(width: 4, cornerRadius: 24)
+                .retroShadow(offset: 4)
                 
                 Spacer()
             }
             
-            Text("Feed twice in 3 days to recover, or visit the Vet now.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            HStack {
-                Button {
-                    showingFoodSheet = true
-                } label: {
-                    Label("Feed", systemImage: "takeoutbag.and.cup.and.straw.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-                
-                Button {
-                    viewModel.showRecoveryOptions(for: .cure)
-                } label: {
-                    Label("Vet (120 Gems)", systemImage: "cross.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
+            // Pet Display
+            if let pet = pet {
+                PixelPet(
+                    stage: stageInfo.stage,
+                    mood: petMood,
+                    isActive: pet.healthState == .healthy,
+                    petType: pet.species,
+                    healthState: pet.healthState,
+                    currentAnimation: viewModel.currentAnimation,
+                    trickVariant: viewModel.trickVariant
+                )
+                .frame(height: 200)
+                .padding(.vertical, 20)
             }
-        }
-        .padding()
-        .background(.orange.opacity(0.1))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Health Alert: Your friend is sick")
-        .accessibilityHint("Feed twice in 3 days to recover, or visit the Vet for 120 Gems")
-    }
-    
-    private var deadBanner: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "cloud.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(.gray)
             
-            Text("Your friend has passed away")
-                .font(.title3)
-                .fontWeight(.medium)
-            
-            Text("You can revive them or start fresh with a new friend.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            
-            HStack(spacing: 12) {
-                Button {
-                    viewModel.showRecoveryOptions(for: .revive)
-                } label: {
+            // Growth Progress
+            if let pet = pet, let nextThreshold = stageInfo.next?.threshold {
+                ProgressBar(
+                    current: pet.growthProgress,
+                    max: nextThreshold,
+                    label: "Growth Progress",
+                    color: .purple
+                )
+            } else if let pet = pet {
+                // Max stage reached
+                HStack {
+                    Spacer()
                     VStack(spacing: 4) {
-                        Text("Revive")
-                        Text("400 Gems")
+                        Text("🎉 Max Stage!")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.purple)
+                        Text("Growth: \(pet.growthProgress)")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            }
+            
+            // Pet Actions
+            if let pet = pet {
+                PetActions(
+                    healthState: pet.healthState,
+                    mood: pet.mood,
+                    onMoodChange: { delta in
+                        viewModel.updateMood(delta: delta)
+                    },
+                    onTriggerAnimation: { animation, variant in
+                        viewModel.triggerAnimation(animation, variant: variant)
+                    }
+                )
+            }
+            
+            // Stats & Feed Button
+            if let pet = pet {
+                HStack(spacing: 12) {
+                    // Fullness
+                    VStack(spacing: 6) {
+                        Text("FULLNESS")
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(.black)
+                        Text("\(Int(pet.fullness))%")
+                            .font(.system(size: 28, weight: .black, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(.black)
                     }
                     .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                
-                Button {
-                    viewModel.showRecoveryOptions(for: .restart)
-                } label: {
-                    VStack(spacing: 4) {
-                        Text("Start Over")
-                        Text("200 Gems")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    .frame(height: 90)
+                    .background(RetroColors.lightBlue)
+                    .retroBorder(width: 4, cornerRadius: 12)
+                    .retroShadow(offset: 4)
+                    
+                    // Mood
+                    VStack(spacing: 6) {
+                        Text("MOOD")
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(.black)
+                        Text("\(pet.mood)/5")
+                            .font(.system(size: 28, weight: .black, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(.black)
                     }
                     .frame(maxWidth: .infinity)
+                    .frame(height: 90)
+                    .background(RetroColors.lightPink)
+                    .retroBorder(width: 4, cornerRadius: 12)
+                    .retroShadow(offset: 4)
+                    
+                    // Feed Button
+                    Button {
+                        showingFoodSheet = true
+                    } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: "fork.knife")
+                                .font(.system(size: 28))
+                            Text("FEED")
+                                .font(.system(size: 14, weight: .black))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 90)
+                        .background(RetroColors.green)
+                        .foregroundColor(.black)
+                        .retroBorder(width: 4, cornerRadius: 12)
+                        .retroShadow(offset: 4)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(pet.canFeed == false)
                 }
-                .buttonStyle(.bordered)
             }
         }
         .padding(24)
-        .frame(maxWidth: .infinity)
-        .background(.gray.opacity(0.1))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Your friend has passed away")
-        .accessibilityHint("Revive for 400 Gems or Start Over for 200 Gems")
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(.black, lineWidth: 5)
+        )
+        .shadow(color: .black, radius: 0, x: 6, y: 6)
     }
     
-    // MARK: - Pet View
+    // MARK: - Daily Status Card
     
-    private var petView: some View {
-        VStack {
-            if let pet = viewModel.currentPet {
-                ZStack {
-                    // Pet visualization
-                    Circle()
-                        .fill(pet.isDead ? .gray.opacity(0.3) : petColor(for: pet.species))
-                        .frame(width: 200, height: 200)
-                        .overlay {
-                            VStack {
-                                Text(pet.species == .cat ? "🐱" : "🐶")
-                                    .font(.system(size: 80))
-                                    .grayscale(pet.isDead ? 1.0 : 0.0)
-                                    .opacity(pet.isDead ? 0.5 : 1.0)
-                                
-                                if pet.isFragile {
-                                    Image(systemName: "bandage.fill")
-                                        .foregroundStyle(.orange)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    
-                    // Health overlay
-                    if pet.isSick {
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Image(systemName: "thermometer.medium")
-                                    .foregroundStyle(.orange)
-                                    .font(.title2)
-                                    .padding(8)
-                            }
-                        }
-                        .frame(width: 200, height: 200)
-                    }
-                }
-                
-                // Stats
-                VStack(spacing: 8) {
-                    Text("Stage \(pet.stage)")
-                        .font(.headline)
-                    
-                    HStack(spacing: 16) {
-                        StatBadge(
-                            icon: "heart.fill",
-                            value: "\(Int(pet.fullness))%",
-                            color: .pink
-                        )
-                        
-                        StatBadge(
-                            icon: "face.smiling",
-                            value: "\(pet.mood)/10",
-                            color: .yellow
-                        )
-                    }
-                }
-                .padding()
-            }
-        }
-    }
-    
-    // MARK: - Action Buttons
-    
-    private var actionButtons: some View {
-        VStack(spacing: 12) {
-            Button {
-                showingFoodSheet = true
-            } label: {
-                Label("Feed", systemImage: "takeoutbag.and.cup.and.straw.fill")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
+    private func dailyStatusCard(pet: Pet) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "chart.bar.fill")
                     .foregroundStyle(.white)
+                Text("Daily Status")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .textCase(.uppercase)
+                Spacer()
             }
-            .disabled(viewModel.currentPet?.canFeed == false)
             
-            Button {
-                showingCosmeticsSheet = true
-            } label: {
-                Label("Cosmetics", systemImage: "paintpalette.fill")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.purple.opacity(0.2), in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(.purple)
+            VStack(spacing: 8) {
+                statusRow(
+                    label: "Fed Today",
+                    value: pet.fedToday ? "✅ Yes" : "❌ No",
+                    valueColor: pet.fedToday ? .green : .red
+                )
+                
+                statusRow(
+                    label: "Food Spending",
+                    value: "\(pet.todayFoodSpend) E",
+                    valueColor: .white
+                )
+                
+                statusRow(
+                    label: "Today's Buff",
+                    value: "+\(Int(pet.dailyBuffAccumulated * 100))%",
+                    valueColor: .white
+                )
+                
+                statusRow(
+                    label: "Unfed Streak",
+                    value: "\(pet.consecutiveUnfedDays) days",
+                    valueColor: pet.consecutiveUnfedDays >= 3 ? .red : .green
+                )
             }
         }
-        .padding()
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Color(red: 0.3, green: 0.35, blue: 0.4), Color(red: 0.2, green: 0.25, blue: 0.35)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .foregroundColor(.white)
+        .retroBorder(width: 4, cornerRadius: 16)
+        .retroShadow(offset: 6)
     }
     
-    // MARK: - Helpers
-    
-    private func petColor(for species: Species) -> Color {
-        switch species {
-        case .cat: return .orange.opacity(0.3)
-        case .dog: return .brown.opacity(0.3)
-        }
-    }
-}
-
-// MARK: - Stat Badge
-
-struct StatBadge: View {
-    let icon: String
-    let value: String
-    let color: Color
-    
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
+    private func statusRow(label: String, value: String, valueColor: Color) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.8))
+            
+            Spacer()
+            
             Text(value)
-                .font(.subheadline)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .monospacedDigit()
+                .foregroundColor(valueColor)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(.ultraThinMaterial, in: Capsule())
     }
 }
 
 #Preview {
     HomeView()
         .environment(AppViewModel(modelContext: ModelContext(
-            try! ModelContainer(for: Pet.self, DailyStats.self)
+            try! ModelContainer(for: Pet.self, DailyStats.self, Wallet.self, LedgerEntry.self)
         )))
 }
-

@@ -70,6 +70,7 @@ enum TransactionReason: String, Codable {
     case iapPurchase = "iap_purchase"
     case refund = "refund"
     case adjustment = "adjustment"
+    case debug = "debug"
 }
 
 

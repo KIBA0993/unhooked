@@ -23,6 +23,19 @@ class EconomyService {
     
     // MARK: - Daily Energy Award
     
+    /// Calculate energy award from usage without recording (for preview)
+    func calculateEnergyFromUsage(usageMinutes: Int, limitMinutes: Int) -> Int {
+        guard limitMinutes > 0 else { return 0 }
+        
+        let r = Double(usageMinutes) / Double(limitMinutes)
+        let rClamped = max(0.0, r)
+        
+        // Simple calculation without smoothing
+        let energyAwarded = Int(round(Double(maxDailyEnergy) * pow(max(0.0, 1.0 - rClamped), gamma)))
+        
+        return energyAwarded
+    }
+    
     func calculateDailyEnergy(
         userId: UUID,
         usageMinutes: Int,

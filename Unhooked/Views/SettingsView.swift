@@ -16,6 +16,11 @@ struct SettingsView: View {
     @State private var selectedLimit: Int = 180  // Default 3 hours
     @State private var showingLimitPicker = false
     
+    // Widget preferences
+    @AppStorage("widget.enabled") private var widgetEnabled = true
+    @AppStorage("widget.showStats") private var showWidgetStats = true
+    @AppStorage("dynamicIsland.enabled") private var dynamicIslandEnabled = true
+    
     let limitOptions = [
         30, 60, 90, 120, 150, 180, 210, 240, 300, 360, 420, 480
     ]
@@ -124,6 +129,37 @@ struct SettingsView: View {
                     } label: {
                         Label("Buy Gems", systemImage: "cart.fill")
                     }
+                }
+                
+                // Widget & Dynamic Island
+                Section {
+                    Toggle(isOn: $widgetEnabled) {
+                        Label("Home Screen Widget", systemImage: "square.grid.2x2")
+                    }
+                    
+                    if widgetEnabled {
+                        Toggle(isOn: $showWidgetStats) {
+                            Text("Show Detailed Stats")
+                        }
+                        .padding(.leading)
+                    }
+                    
+                    Toggle(isOn: $dynamicIslandEnabled) {
+                        Label("Live Activity (Dynamic Island)", systemImage: "sparkles")
+                    }
+                    
+                    Button {
+                        // Open widget gallery
+                        if let url = URL(string: "widget://") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label("Add to Home Screen", systemImage: "plus.square.on.square")
+                    }
+                } header: {
+                    Text("Widgets & Live Activity")
+                } footer: {
+                    Text("Display your pet on your home screen, lock screen, or Dynamic Island")
                 }
                 
                 // Memorial Section

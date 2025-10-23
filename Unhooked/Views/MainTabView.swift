@@ -18,11 +18,6 @@ struct MainTabView: View {
                     Label("Home", systemImage: "house.fill")
                 }
             
-            MemorialView()
-                .tabItem {
-                    Label("Memories", systemImage: "cloud.fill")
-                }
-            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
