@@ -337,49 +337,53 @@ struct PetWidgetView: View {
     
     // Lock Screen Circular
     private var accessoryCircularView: some View {
-        if let data = entry.petData {
-            ZStack {
-                Circle()
-                    .fill(data.healthState == .healthy ? Color.green : (data.healthState == .sick ? Color.orange : Color.gray))
-                    .opacity(0.3)
-                
-                Text(data.petSpecies == .cat ? "🐱" : "🐶")
+        Group {
+            if let data = entry.petData {
+                ZStack {
+                    Circle()
+                        .fill(data.healthState == .healthy ? Color.green : (data.healthState == .sick ? Color.orange : Color.gray))
+                        .opacity(0.3)
+                    
+                    Text(data.petSpecies == .cat ? "🐱" : "🐶")
+                        .font(.title3)
+                }
+            } else {
+                Image(systemName: "pawprint.fill")
                     .font(.title3)
             }
-        } else {
-            Image(systemName: "pawprint.fill")
-                .font(.title3)
         }
     }
     
     // Lock Screen Rectangular
     private var accessoryRectangularView: some View {
-        if let data = entry.petData {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(data.petSpecies == .cat ? "🐱" : "🐶")
-                    Text("Stage \(data.petStage)")
-                        .font(.caption2)
-                }
-                
-                HStack(spacing: 8) {
-                    HStack(spacing: 2) {
-                        Image(systemName: "heart.fill")
-                        Text("\(data.fullness)%")
+        Group {
+            if let data = entry.petData {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(data.petSpecies == .cat ? "🐱" : "🐶")
+                        Text("Stage \(data.petStage)")
+                            .font(.caption2)
                     }
                     
-                    HStack(spacing: 2) {
-                        Image(systemName: "bolt.fill")
-                        Text("\(data.energyBalance)")
+                    HStack(spacing: 8) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "heart.fill")
+                            Text("\(data.fullness)%")
+                        }
+                        
+                        HStack(spacing: 2) {
+                            Image(systemName: "bolt.fill")
+                            Text("\(data.energyBalance)")
+                        }
                     }
-                }
-                .font(.caption2)
-            }
-        } else {
-            HStack {
-                Image(systemName: "pawprint.fill")
-                Text("Open app")
                     .font(.caption2)
+                }
+            } else {
+                HStack {
+                    Image(systemName: "pawprint.fill")
+                    Text("Open app")
+                        .font(.caption2)
+                }
             }
         }
     }
