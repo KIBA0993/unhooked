@@ -71,13 +71,25 @@ class WidgetService {
     
     @available(iOS 16.2, *)
     func startLiveActivity(pet: Pet, energyBalance: Int) {
-        guard dynamicIslandEnabled else { return }
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("⚠️ Live Activities not enabled")
+        print("🔵 Attempting to start Live Activity...")
+        print("  - dynamicIslandEnabled: \(dynamicIslandEnabled)")
+        
+        guard dynamicIslandEnabled else { 
+            print("❌ Dynamic Island disabled in settings")
+            return 
+        }
+        
+        let authInfo = ActivityAuthorizationInfo()
+        print("  - areActivitiesEnabled: \(authInfo.areActivitiesEnabled)")
+        
+        guard authInfo.areActivitiesEnabled else {
+            print("❌ Live Activities not enabled in iOS Settings")
+            print("   Go to: Settings > Unhooked > Live Activities")
             return
         }
         
         // Stop any existing activity
+        print("  - Stopping any existing activities...")
         stopLiveActivity()
         
         let attributes = PetActivityAttributes(userId: pet.userId)
@@ -90,6 +102,8 @@ class WidgetService {
             isFragile: pet.isFragile
         )
         
+        print("  - Creating activity with pet: \(pet.species.rawValue), stage: \(pet.stage)")
+        
         do {
             let activity = try Activity.request(
                 attributes: attributes,
@@ -97,9 +111,12 @@ class WidgetService {
                 pushType: nil
             )
             
-            print("✨ Live Activity started: \(activity.id)")
+            print("✨ Live Activity started successfully!")
+            print("   Activity ID: \(activity.id)")
+            print("   State: \(activity.activityState)")
         } catch {
-            print("❌ Failed to start Live Activity: \(error)")
+            print("❌ Failed to start Live Activity: \(error.localizedDescription)")
+            print("   Error details: \(error)")
         }
     }
     

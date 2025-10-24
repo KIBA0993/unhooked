@@ -165,11 +165,15 @@ struct SettingsView: View {
                     if #available(iOS 16.2, *) {
                         Button {
                             // Start Live Activity
+                            print("👆 User tapped Start Dynamic Island button")
                             if let pet = viewModel.currentPet {
+                                print("   Pet found: \(pet.species.rawValue)")
                                 viewModel.widgetService.startLiveActivity(
                                     pet: pet,
                                     energyBalance: viewModel.energyBalance
                                 )
+                            } else {
+                                print("❌ No pet found!")
                             }
                         } label: {
                             Label("Start Dynamic Island", systemImage: "play.fill")
