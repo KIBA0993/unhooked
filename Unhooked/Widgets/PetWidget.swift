@@ -393,12 +393,15 @@ struct PetWidgetView: View {
 // Note: This will have @main when moved to Widget Extension target
 // For now, it's commented out to avoid conflict with UnhookedApp @main
 
- @main
+@main
 struct UnhookedWidgets: WidgetBundle {
     var body: some Widget {
-         PetWidget()
-     }
- }
+        PetWidget()
+        if #available(iOS 16.2, *) {
+            PetLiveActivity()
+        }
+    }
+}
 
 #Preview(as: .systemSmall) {
     PetWidget()
