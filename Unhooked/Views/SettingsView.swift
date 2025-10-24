@@ -193,12 +193,21 @@ struct SettingsView: View {
                             
                             // Show success message
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                let deviceName = UIDevice.current.model
                                 liveActivityMessage = """
-                                Live Activity started!
+                                Starting Live Activity...
                                 
-                                Check the top of your screen near the status bar.
+                                Device: \(deviceName)
                                 
-                                Note: Dynamic Island requires iPhone 14 Pro or later.
+                                ⚠️ IMPORTANT:
+                                - Look at the VERY TOP of your screen
+                                - Near the status bar (where time/battery show)
+                                - You'll see a small black pill with a pet emoji
+                                
+                                Dynamic Island ONLY works on:
+                                • iPhone 14 Pro or later
+                                
+                                Check the Xcode console (⌘⇧Y) to see if it worked!
                                 """
                                 showingLiveActivityAlert = true
                             }
