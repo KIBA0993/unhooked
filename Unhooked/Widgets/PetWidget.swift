@@ -395,11 +395,9 @@ struct PetWidgetView: View {
 
 @main
 struct UnhookedWidgets: WidgetBundle {
+    @WidgetBundleBuilder
     var body: some Widget {
         PetWidget()
-        if #available(iOS 16.2, *) {
-            PetLiveActivity()
-        }
     }
 }
 
