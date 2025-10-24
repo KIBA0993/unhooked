@@ -149,6 +149,19 @@ struct SettingsView: View {
                     }
                     
                     Button {
+                        // Force update widgets
+                        if let pet = viewModel.currentPet {
+                            viewModel.widgetService.updateWidgets(
+                                pet: pet,
+                                energyBalance: viewModel.energyBalance,
+                                gemsBalance: viewModel.gemsBalance
+                            )
+                        }
+                    } label: {
+                        Label("Refresh Widget Now", systemImage: "arrow.clockwise")
+                    }
+                    
+                    Button {
                         // Open widget gallery
                         if let url = URL(string: "widget://") {
                             UIApplication.shared.open(url)

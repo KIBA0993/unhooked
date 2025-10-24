@@ -23,7 +23,7 @@ class AppViewModel {
     let iapService: IAPService  // Public for view access
     private let analyticsService: AnalyticsService
     private let featureFlagService: FeatureFlagService
-    private let widgetService: WidgetService
+    let widgetService: WidgetService  // Public for manual widget refresh
     
     // Persistent user identifier (syncs across devices via iCloud)
     private let userId: UUID = {

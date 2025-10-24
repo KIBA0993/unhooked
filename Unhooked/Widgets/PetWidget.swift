@@ -44,7 +44,7 @@ struct PetWidgetProvider: TimelineProvider {
     }
     
     private func loadWidgetData() -> PetWidgetData? {
-        guard let appGroup = UserDefaults(suiteName: "group.com.unhooked.shared"),
+        guard let appGroup = UserDefaults(suiteName: "group.com.kiba.unhooked.shared"),
               let data = appGroup.data(forKey: "petWidgetData"),
               let widgetData = try? JSONDecoder().decode(PetWidgetData.self, from: data) else {
             return nil
@@ -393,12 +393,12 @@ struct PetWidgetView: View {
 // Note: This will have @main when moved to Widget Extension target
 // For now, it's commented out to avoid conflict with UnhookedApp @main
 
-// @main
-// struct UnhookedWidgets: WidgetBundle {
-//     var body: some Widget {
-//         PetWidget()
-//     }
-// }
+ @main
+struct UnhookedWidgets: WidgetBundle {
+    var body: some Widget {
+         PetWidget()
+     }
+ }
 
 #Preview(as: .systemSmall) {
     PetWidget()
