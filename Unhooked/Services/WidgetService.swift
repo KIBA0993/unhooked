@@ -149,16 +149,14 @@ class WidgetService {
         } catch {
             print("\n❌ FAILED TO CREATE LIVE ACTIVITY")
             print("  - Error: \(error.localizedDescription)")
-            print("  - Details: \(error)")
-            
-            if let activityError = error as? ActivityKitError {
-                print("  - Activity Error Type: \(activityError)")
-            }
+            print("  - Full Error: \(error)")
+            print("  - Error Type: \(type(of: error))")
             
             print("\n🔍 Possible reasons:")
             print("  1. Not on iPhone 14 Pro or later (Dynamic Island required)")
             print("  2. Live Activities disabled in iOS Settings > Unhooked")
             print("  3. PetLiveActivity not properly registered in widget extension")
+            print("  4. Simulator may need restart")
             print(String(repeating: "=", count: 60) + "\n")
         }
     }
