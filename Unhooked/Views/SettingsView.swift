@@ -147,6 +147,42 @@ struct SettingsView: View {
                     Toggle(isOn: $dynamicIslandEnabled) {
                         Label("Live Activity (Dynamic Island)", systemImage: "sparkles")
                     }
+                    .onChange(of: dynamicIslandEnabled) { _, isEnabled in
+                        if isEnabled, let pet = viewModel.currentPet {
+                            if #available(iOS 16.2, *) {
+                                viewModel.widgetService.startLiveActivity(
+                                    pet: pet,
+                                    energyBalance: viewModel.energyBalance
+                                )
+                            }
+                        } else {
+                            if #available(iOS 16.2, *) {
+                                viewModel.widgetService.stopLiveActivity()
+                            }
+                        }
+                    }
+                    
+                    if #available(iOS 16.2, *) {
+                        Button {
+                            // Start Live Activity
+                            if let pet = viewModel.currentPet {
+                                viewModel.widgetService.startLiveActivity(
+                                    pet: pet,
+                                    energyBalance: viewModel.energyBalance
+                                )
+                            }
+                        } label: {
+                            Label("Start Dynamic Island", systemImage: "play.fill")
+                        }
+                        
+                        Button {
+                            // Stop Live Activity
+                            viewModel.widgetService.stopLiveActivity()
+                        } label: {
+                            Label("Stop Dynamic Island", systemImage: "stop.fill")
+                        }
+                        .foregroundStyle(.red)
+                    }
                     
                     Button {
                         // Force update widgets
@@ -172,7 +208,11 @@ struct SettingsView: View {
                 } header: {
                     Text("Widgets & Live Activity")
                 } footer: {
-                    Text("Display your pet on your home screen, lock screen, or Dynamic Island")
+                    if #available(iOS 16.2, *) {
+                        Text("Display your pet on your home screen, lock screen, or Dynamic Island. Note: Dynamic Island requires iPhone 14 Pro or later.")
+                    } else {
+                        Text("Display your pet on your home screen and lock screen.")
+                    }
                 }
                 
                 // Memorial Section
