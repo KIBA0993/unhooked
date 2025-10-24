@@ -71,27 +71,53 @@ class WidgetService {
     
     @available(iOS 16.2, *)
     func startLiveActivity(pet: Pet, energyBalance: Int) {
-        print("🔵 Attempting to start Live Activity...")
+        print("\n" + String(repeating: "=", count: 60))
+        print("🔵 ATTEMPTING TO START LIVE ACTIVITY")
+        print(String(repeating: "=", count: 60))
+        
+        // Check 1: Toggle enabled?
+        print("\n📱 Check 1: App Settings")
         print("  - dynamicIslandEnabled: \(dynamicIslandEnabled)")
         
         guard dynamicIslandEnabled else { 
-            print("❌ Dynamic Island disabled in settings")
+            print("❌ FAILED: Dynamic Island toggle is OFF in app settings")
+            print("   Solution: Turn on the toggle in Settings > Widgets & Live Activity")
+            print(String(repeating: "=", count: 60) + "\n")
             return 
         }
+        print("  ✅ Toggle is ON")
         
+        // Check 2: iOS permissions
+        print("\n🔐 Check 2: iOS Permissions")
         let authInfo = ActivityAuthorizationInfo()
         print("  - areActivitiesEnabled: \(authInfo.areActivitiesEnabled)")
         
         guard authInfo.areActivitiesEnabled else {
-            print("❌ Live Activities not enabled in iOS Settings")
-            print("   Go to: Settings > Unhooked > Live Activities")
+            print("❌ FAILED: Live Activities not authorized in iOS Settings")
+            print("   Solution: Open iOS Settings app > Unhooked > Enable 'Live Activities'")
+            print(String(repeating: "=", count: 60) + "\n")
             return
         }
+        print("  ✅ iOS permissions granted")
         
-        // Stop any existing activity
-        print("  - Stopping any existing activities...")
-        stopLiveActivity()
+        // Check 3: Device capability
+        print("\n📲 Check 3: Device Capability")
+        print("  - Device: \(UIDevice.current.model)")
+        print("  - System: \(UIDevice.current.systemVersion)")
         
+        // Check 4: Stop existing activities
+        print("\n🔄 Check 4: Cleaning up existing activities")
+        let existingActivities = Activity<PetActivityAttributes>.activities
+        print("  - Found \(existingActivities.count) existing activities")
+        for activity in existingActivities {
+            print("    - Ending activity: \(activity.id)")
+            Task {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+        
+        // Check 5: Create new activity
+        print("\n✨ Check 5: Creating new Live Activity")
         let attributes = PetActivityAttributes(userId: pet.userId)
         let initialState = PetActivityAttributes.ContentState(
             petSpecies: pet.species.rawValue,
@@ -102,7 +128,9 @@ class WidgetService {
             isFragile: pet.isFragile
         )
         
-        print("  - Creating activity with pet: \(pet.species.rawValue), stage: \(pet.stage)")
+        print("  - Pet: \(pet.species.rawValue) (Stage \(pet.stage))")
+        print("  - Health: \(pet.healthState.rawValue)")
+        print("  - Energy: \(energyBalance)")
         
         do {
             let activity = try Activity.request(
@@ -111,12 +139,27 @@ class WidgetService {
                 pushType: nil
             )
             
-            print("✨ Live Activity started successfully!")
-            print("   Activity ID: \(activity.id)")
-            print("   State: \(activity.activityState)")
+            print("\n🎉 SUCCESS! Live Activity created!")
+            print("  - Activity ID: \(activity.id)")
+            print("  - State: \(activity.activityState)")
+            print("  - Content: \(activity.content)")
+            print("\n💡 Look at the top of your screen near the status bar!")
+            print("   You should see: \(pet.species == .cat ? "🐱" : "🐶")")
+            print(String(repeating: "=", count: 60) + "\n")
         } catch {
-            print("❌ Failed to start Live Activity: \(error.localizedDescription)")
-            print("   Error details: \(error)")
+            print("\n❌ FAILED TO CREATE LIVE ACTIVITY")
+            print("  - Error: \(error.localizedDescription)")
+            print("  - Details: \(error)")
+            
+            if let activityError = error as? ActivityKitError {
+                print("  - Activity Error Type: \(activityError)")
+            }
+            
+            print("\n🔍 Possible reasons:")
+            print("  1. Not on iPhone 14 Pro or later (Dynamic Island required)")
+            print("  2. Live Activities disabled in iOS Settings > Unhooked")
+            print("  3. PetLiveActivity not properly registered in widget extension")
+            print(String(repeating: "=", count: 60) + "\n")
         }
     }
     
