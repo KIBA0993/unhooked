@@ -15,6 +15,8 @@ struct SettingsView: View {
     
     @State private var selectedLimit: Int = 180  // Default 3 hours
     @State private var showingLimitPicker = false
+    @State private var showingLiveActivityAlert = false
+    @State private var liveActivityMessage = ""
     
     // Widget preferences
     @AppStorage("widget.enabled") private var widgetEnabled = true
@@ -164,16 +166,41 @@ struct SettingsView: View {
                     
                     if #available(iOS 16.2, *) {
                         Button {
-                            // Start Live Activity
+                            // Start Live Activity with feedback
                             print("👆 User tapped Start Dynamic Island button")
-                            if let pet = viewModel.currentPet {
-                                print("   Pet found: \(pet.species.rawValue)")
-                                viewModel.widgetService.startLiveActivity(
-                                    pet: pet,
-                                    energyBalance: viewModel.energyBalance
-                                )
-                            } else {
-                                print("❌ No pet found!")
+                            
+                            if !dynamicIslandEnabled {
+                                liveActivityMessage = "Please enable the 'Live Activity' toggle first"
+                                showingLiveActivityAlert = true
+                                return
+                            }
+                            
+                            guard let pet = viewModel.currentPet else {
+                                liveActivityMessage = "No pet found! Please restart the app."
+                                showingLiveActivityAlert = true
+                                return
+                            }
+                            
+                            // Check if on supported device
+                            let deviceModel = UIDevice.current.model
+                            print("   Device: \(deviceModel)")
+                            print("   Pet found: \(pet.species.rawValue)")
+                            
+                            viewModel.widgetService.startLiveActivity(
+                                pet: pet,
+                                energyBalance: viewModel.energyBalance
+                            )
+                            
+                            // Show success message
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                liveActivityMessage = """
+                                Live Activity started!
+                                
+                                Check the top of your screen near the status bar.
+                                
+                                Note: Dynamic Island requires iPhone 14 Pro or later.
+                                """
+                                showingLiveActivityAlert = true
                             }
                         } label: {
                             Label("Start Dynamic Island", systemImage: "play.fill")
@@ -245,6 +272,11 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .sheet(isPresented: $showingLimitPicker) {
                 limitPickerSheet
+            }
+            .alert("Dynamic Island", isPresented: $showingLiveActivityAlert) {
+                Button("OK") { }
+            } message: {
+                Text(liveActivityMessage)
             }
             .onAppear {
                 screenTimeService.checkAuthorizationStatus()
