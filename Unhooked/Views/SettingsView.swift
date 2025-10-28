@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var showingLimitPicker = false
     @State private var showingLiveActivityAlert = false
     @State private var liveActivityMessage = ""
+    @State private var liveActivityStatus = ""
     
     // Widget preferences
     @AppStorage("widget.enabled") private var widgetEnabled = true
@@ -166,53 +167,86 @@ struct SettingsView: View {
                     
                     if #available(iOS 16.2, *) {
                         Button {
-                            // Start Live Activity with feedback
+                            // Start Live Activity with detailed feedback
                             print("👆 User tapped Start Dynamic Island button")
+                            liveActivityStatus = "Starting..."
                             
                             if !dynamicIslandEnabled {
+                                liveActivityStatus = "❌ Toggle is OFF"
                                 liveActivityMessage = "Please enable the 'Live Activity' toggle first"
                                 showingLiveActivityAlert = true
                                 return
                             }
                             
                             guard let pet = viewModel.currentPet else {
+                                liveActivityStatus = "❌ No pet found"
                                 liveActivityMessage = "No pet found! Please restart the app."
                                 showingLiveActivityAlert = true
                                 return
                             }
                             
-                            // Check if on supported device
-                            let deviceModel = UIDevice.current.model
-                            print("   Device: \(deviceModel)")
-                            print("   Pet found: \(pet.species.rawValue)")
+                            // Check authorization
+                            let authInfo = ActivityAuthorizationInfo()
+                            if !authInfo.areActivitiesEnabled {
+                                liveActivityStatus = "❌ Not authorized"
+                                liveActivityMessage = """
+                                Live Activities are not enabled!
+                                
+                                To fix:
+                                1. Open iOS Settings app
+                                2. Scroll to "Unhooked"
+                                3. Turn ON "Live Activities"
+                                4. Try again
+                                """
+                                showingLiveActivityAlert = true
+                                return
+                            }
                             
+                            liveActivityStatus = "✅ Authorized - Starting..."
+                            
+                            // Start the activity
                             viewModel.widgetService.startLiveActivity(
                                 pet: pet,
                                 energyBalance: viewModel.energyBalance
                             )
                             
-                            // Show success message
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                let deviceName = UIDevice.current.model
-                                liveActivityMessage = """
-                                Starting Live Activity...
-                                
-                                Device: \(deviceName)
-                                
-                                ⚠️ IMPORTANT:
-                                - Look at the VERY TOP of your screen
-                                - Near the status bar (where time/battery show)
-                                - You'll see a small black pill with a pet emoji
-                                
-                                Dynamic Island ONLY works on:
-                                • iPhone 14 Pro or later
-                                
-                                Check the Xcode console (⌘⇧Y) to see if it worked!
-                                """
+                            // Show result after a moment
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                let activities = Activity<PetActivityAttributes>.activities
+                                if activities.isEmpty {
+                                    liveActivityStatus = "❌ Failed to create"
+                                    liveActivityMessage = """
+                                    Failed to start Live Activity!
+                                    
+                                    Possible issues:
+                                    • Not on iPhone 14 Pro or later
+                                    • Simulator needs restart
+                                    • Check Xcode console for errors (⌘⇧Y)
+                                    
+                                    Device: \(UIDevice.current.model)
+                                    System: iOS \(UIDevice.current.systemVersion)
+                                    """
+                                } else {
+                                    liveActivityStatus = "✅ Active (\(activities.count))"
+                                    liveActivityMessage = """
+                                    ✅ Live Activity Started!
+                                    
+                                    Look at the TOP of your screen!
+                                    You should see: \(pet.species == .cat ? "🐱" : "🐶")
+                                    
+                                    Active activities: \(activities.count)
+                                    """
+                                }
                                 showingLiveActivityAlert = true
                             }
                         } label: {
                             Label("Start Dynamic Island", systemImage: "play.fill")
+                        }
+                        
+                        if !liveActivityStatus.isEmpty {
+                            Text(liveActivityStatus)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                         
                         Button {

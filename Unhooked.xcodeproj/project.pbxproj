@@ -71,6 +71,7 @@
 		0F4F91252EAB1DB9006EFA0E /* Exceptions for "Unhooked" folder in "Unhooked" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Widgets/PetLiveActivity.swift,
 				Widgets/PetWidget.swift,
 			);
 			target = 0F3193C42EA1E31600202975 /* Unhooked */;
@@ -81,6 +82,7 @@
 				Models/Ledger.swift,
 				Models/Pet.swift,
 				Services/WidgetService.swift,
+				Widgets/PetLiveActivity.swift,
 				Widgets/PetWidget.swift,
 			);
 			target = 0F4F91082EAB1A47006EFA0E /* UnhookedWidgetsExtension */;
