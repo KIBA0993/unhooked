@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import ActivityKit
 
 struct SettingsView: View {
     @Environment(AppViewModel.self) private var viewModel
