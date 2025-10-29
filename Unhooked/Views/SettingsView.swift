@@ -169,7 +169,8 @@ struct SettingsView: View {
                     if #available(iOS 16.2, *) {
                         Button {
                             // Start Live Activity with detailed feedback
-                            print("👆 User tapped Start Dynamic Island button")
+                            print("👆 👆 👆 USER TAPPED START DYNAMIC ISLAND BUTTON 👆 👆 👆")
+                            print("If you see this, the button is working!")
                             liveActivityStatus = "Starting..."
                             
                             if !dynamicIslandEnabled {
