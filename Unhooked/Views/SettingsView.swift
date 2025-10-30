@@ -215,6 +215,14 @@ struct SettingsView: View {
                             // Show result after a moment
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                 let activities = Activity<PetActivityAttributes>.activities
+                                print("🔍 Checking activities...")
+                                print("   Count: \(activities.count)")
+                                for activity in activities {
+                                    print("   Activity ID: \(activity.id)")
+                                    print("   State: \(activity.activityState)")
+                                    print("   Pet: \(activity.content.state.petSpecies)")
+                                }
+                                
                                 if activities.isEmpty {
                                     liveActivityStatus = "❌ Failed to create"
                                     liveActivityMessage = """
