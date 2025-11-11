@@ -202,18 +202,18 @@ struct DebugPanel: View {
                 
                 Divider()
                 
-                // Reset
+                // Reset - Choose New Pet
                 Button {
                     onResetGame()
                 } label: {
                     HStack {
-                        Image(systemName: "trash.fill")
-                        Text("Reset Game")
+                        Image(systemName: "arrow.counterclockwise.circle.fill")
+                        Text("Choose New Pet")
                     }
                     .font(.caption.bold())
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(.red.opacity(0.3))
+                    .background(.purple.opacity(0.3))
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)

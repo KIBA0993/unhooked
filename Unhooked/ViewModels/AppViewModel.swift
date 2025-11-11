@@ -486,8 +486,11 @@ class AppViewModel {
     }
     
     func debugResetGame() {
+        print("🔄 DEBUG: Resetting game...")
+        
         // Delete current pet
         if let pet = currentPet {
+            print("   Deleting current pet")
             modelContext.delete(pet)
         }
         
@@ -497,16 +500,14 @@ class AppViewModel {
             wallet.energyBalance = 50
             wallet.gemsBalance = 0
             
-            // Create new pet
-            let newPet = Pet(userId: userId, species: .cat)
-            modelContext.insert(newPet)
-            
+            // DON'T create new pet - let user choose species
             try modelContext.save()
             
-            currentPet = newPet
+            // Set current pet to nil - this will trigger species selection
+            currentPet = nil
             updateBalances()
             
-            print("🐛 DEBUG: Game reset")
+            print("✅ DEBUG: Game reset! User will choose new pet.")
         } catch {
             print("❌ Debug reset error: \(error)")
         }
