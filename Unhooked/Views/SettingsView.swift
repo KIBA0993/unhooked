@@ -21,6 +21,8 @@ struct SettingsView: View {
     
     @State private var showingPurchaseGems = false
     @State private var showingTutorial = false
+    @State private var showingAppLimitSetup = false
+    @State private var currentAppLimitConfig: AppLimitConfig?
     
     var body: some View {
         ZStack {

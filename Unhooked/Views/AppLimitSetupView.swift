@@ -241,17 +241,21 @@ struct UnlockUnlimitedChangesView: View {
     
     private func purchaseUnlock() {
         // Spend gems to unlock
-        let success = viewModel.economyService.spendGems(
-            userId: viewModel.userId,
-            amount: 99,
-            reason: .adjustment,
-            relatedItemId: "unlimited_limit_changes",
-            idempotencyKey: UUID().uuidString
-        )
-        
-        if success {
-            onPurchase()
-            dismiss()
+        do {
+            let success = try viewModel.economyService.spendGems(
+                userId: viewModel.userId,
+                amount: 99,
+                reason: .adjustment,
+                relatedItemId: "unlimited_limit_changes",
+                idempotencyKey: UUID().uuidString
+            )
+            
+            if success {
+                onPurchase()
+                dismiss()
+            }
+        } catch {
+            print("❌ Failed to spend gems: \(error)")
         }
     }
 }
