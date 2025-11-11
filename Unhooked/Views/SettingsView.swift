@@ -23,6 +23,8 @@ struct SettingsView: View {
     @State private var showingTutorial = false
     @State private var showingAppLimitSetup = false
     @State private var currentAppLimitConfig: AppLimitConfig?
+    @State private var authorizationError: String?
+    @State private var showingAuthError = false
     
     var body: some View {
         ZStack {
@@ -83,6 +85,23 @@ struct SettingsView: View {
                                     } else {
                                         Button("Authorize") {
                                             print("🔵 Authorize button tapped")
+                                            
+                                            #if targetEnvironment(simulator)
+                                            // Simulator workaround - Screen Time API doesn't work in simulator
+                                            authorizationError = """
+                                            ⚠️ Screen Time API Not Available in Simulator
+                                            
+                                            The Screen Time/Family Controls API requires a real device to test.
+                                            
+                                            For now, you can:
+                                            • Test other features in the simulator
+                                            • Deploy to a real iPhone/iPad to test this feature
+                                            
+                                            Would you like to skip to app limit setup for testing?
+                                            """
+                                            showingAuthError = true
+                                            print("⚠️ Running in simulator - Screen Time not available")
+                                            #else
                                             Task {
                                                 print("🔵 Requesting Screen Time authorization...")
                                                 await screenTimeService.requestAuthorization()
@@ -96,8 +115,11 @@ struct SettingsView: View {
                                                     }
                                                 } else {
                                                     print("❌ Authorization denied or failed")
+                                                    authorizationError = "Screen Time authorization was denied. Please enable Screen Time in iOS Settings."
+                                                    showingAuthError = true
                                                 }
                                             }
+                                            #endif
                                         }
                                         .font(.system(size: 14, weight: .semibold))
                                         .foregroundColor(.blue)
@@ -343,6 +365,19 @@ struct SettingsView: View {
         }
         .onAppear {
             loadAppLimitConfig()
+        }
+        .alert("Screen Time Authorization", isPresented: $showingAuthError) {
+            Button("OK") { }
+            #if targetEnvironment(simulator)
+            Button("Skip to Setup (Testing)") {
+                // Allow testing the UI in simulator
+                showingAppLimitSetup = true
+            }
+            #endif
+        } message: {
+            if let error = authorizationError {
+                Text(error)
+            }
         }
     }
     
