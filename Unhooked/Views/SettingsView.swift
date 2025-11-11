@@ -324,6 +324,15 @@ struct SettingsView: View {
             TutorialView()
                 .background(Color.clear)
         }
+        .sheet(isPresented: $showingAppLimitSetup) {
+            AppLimitSetupView(
+                isFirstTime: currentAppLimitConfig == nil,
+                existingConfig: currentAppLimitConfig
+            )
+        }
+        .onAppear {
+            loadAppLimitConfig()
+        }
     }
     
     private func sectionHeader(title: String) -> some View {
@@ -349,6 +358,27 @@ struct SettingsView: View {
     private func rowDivider() -> some View {
         Divider()
             .padding(.leading, 62)
+    }
+    
+    private func loadAppLimitConfig() {
+        let descriptor = FetchDescriptor<AppLimitConfig>(
+            predicate: #Predicate { $0.userId == viewModel.userId }
+        )
+        if let config = try? viewModel.modelContext.fetch(descriptor).first {
+            currentAppLimitConfig = config
+        }
+    }
+    
+    private func formatMinutes(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 && mins > 0 {
+            return "\(hours)h \(mins)m"
+        } else if hours > 0 {
+            return "\(hours)h"
+        } else {
+            return "\(mins)m"
+        }
     }
 }
 
@@ -459,27 +489,6 @@ struct EdgeBorder: Shape {
             path.addRect(CGRect(x: x, y: y, width: w, height: h))
         }
         return path
-    }
-    
-    private func loadAppLimitConfig() {
-        let descriptor = FetchDescriptor<AppLimitConfig>(
-            predicate: #Predicate { $0.userId == viewModel.userId }
-        )
-        if let config = try? viewModel.modelContext.fetch(descriptor).first {
-            currentAppLimitConfig = config
-        }
-    }
-    
-    private func formatMinutes(_ minutes: Int) -> String {
-        let hours = minutes / 60
-        let mins = minutes % 60
-        if hours > 0 && mins > 0 {
-            return "\(hours)h \(mins)m"
-        } else if hours > 0 {
-            return "\(hours)h"
-        } else {
-            return "\(mins)m"
-        }
     }
 }
 
