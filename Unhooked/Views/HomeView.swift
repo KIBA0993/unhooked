@@ -43,6 +43,36 @@ struct HomeView: View {
     
     var body: some View {
         ZStack {
+            // Show species selection if no pet
+            if pet == nil {
+                SpeciesSelectionView(onSelect: { species in
+                    viewModel.createNewPet(species: species)
+                })
+            } else {
+                // Show normal home view with pet
+                petHomeView
+            }
+        }
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showingFoodSheet) {
+            FoodShopView()
+                .environment(viewModel)
+        }
+        .fullScreenCover(isPresented: $showingSettings) {
+            SettingsView()
+                .environment(viewModel)
+                .background(Color.clear)
+        }
+        .sheet(isPresented: $showingStageDetails) {
+            stageDetailsView
+        }
+        .sheet(isPresented: $showingRecoverySheet) {
+            recoveryView
+        }
+    }
+    
+    private var petHomeView: some View {
+        ZStack {
             // FULLSCREEN ANIMATED BACKGROUND
             PetBackground(stage: stageInfo.stage)
                 .ignoresSafeArea()
@@ -281,31 +311,20 @@ struct HomeView: View {
             }
             #endif
         }
-        .navigationBarHidden(true)
-        .sheet(isPresented: $showingFoodSheet) {
-            FoodShopView()
-                .environment(viewModel)
-        }
-        .fullScreenCover(isPresented: $showingSettings) {
-            SettingsView()
-                .environment(viewModel)
-                .background(Color.clear)
-        }
-        .sheet(isPresented: $showingStageDetails) {
-            stageDetailsView
-        }
-        .sheet(isPresented: $showingRecoverySheet) {
-            if let action = viewModel.recoveryAction {
-                RecoveryModal(
-                    action: action,
-                    gems: viewModel.gemsBalance,
-                    onConfirm: {
-                        Task {
-                            await viewModel.performRecovery()
-                        }
+    }
+    
+    @ViewBuilder
+    private var recoveryView: some View {
+        if let action = viewModel.recoveryAction {
+            RecoveryModal(
+                action: action,
+                gems: viewModel.gemsBalance,
+                onConfirm: {
+                    Task {
+                        await viewModel.performRecovery()
                     }
-                )
-            }
+                }
+            )
         }
     }
     
