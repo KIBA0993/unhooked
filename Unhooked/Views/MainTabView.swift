@@ -12,17 +12,8 @@ struct MainTabView: View {
     @Environment(AppViewModel.self) private var viewModel
     
     var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
-                }
-            
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
-                }
-        }
+        // Single view - Settings accessed via button in HomeView
+        HomeView()
     }
 }
 
