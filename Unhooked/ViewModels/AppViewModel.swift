@@ -515,17 +515,18 @@ class AppViewModel {
     
     // MARK: - Pet Creation
     
-    func createNewPet(species: Species) {
-        print("🐾 Creating new \(species.rawValue)...")
+    func createNewPet(species: Species, name: String) {
+        print("🐾 Creating new \(species.rawValue) named '\(name)'...")
         
         let newPet = Pet(userId: userId, species: species)
+        newPet.name = name
         modelContext.insert(newPet)
         
         do {
             try modelContext.save()
             currentPet = newPet
             updateBalances()
-            print("✅ New \(species.rawValue) created!")
+            print("✅ New \(species.rawValue) '\(name)' created!")
         } catch {
             print("❌ Failed to create pet: \(error)")
         }

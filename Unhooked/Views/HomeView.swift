@@ -41,13 +41,33 @@ struct HomeView: View {
         return .neutral
     }
     
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
+    @State private var selectedSpecies: Species? = nil
+    @State private var showingNamingScreen = false
+    @State private var showingTutorial = false
+    
     var body: some View {
         ZStack {
             // Show species selection if no pet
             if pet == nil {
-                SpeciesSelectionView(onSelect: { species in
-                    viewModel.createNewPet(species: species)
-                })
+                if selectedSpecies == nil {
+                    // Step 1: Choose species
+                    SpeciesSelectionView(onSelect: { species in
+                        selectedSpecies = species
+                        showingNamingScreen = true
+                    })
+                } else if showingNamingScreen, let species = selectedSpecies {
+                    // Step 2: Name the pet
+                    PetNamingView(species: species, onComplete: { name in
+                        viewModel.createNewPet(species: species, name: name)
+                        showingNamingScreen = false
+                        
+                        // Show tutorial if first time
+                        if !hasSeenTutorial {
+                            showingTutorial = true
+                        }
+                    })
+                }
             } else {
                 // Show normal home view with pet
                 petHomeView
@@ -68,6 +88,12 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showingRecoverySheet) {
             recoveryView
+        }
+        .fullScreenCover(isPresented: $showingTutorial) {
+            TutorialView()
+                .onDisappear {
+                    hasSeenTutorial = true
+                }
         }
     }
     

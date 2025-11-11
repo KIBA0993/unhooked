@@ -13,6 +13,7 @@ final class Pet {
     @Attribute(.unique) var id: UUID
     var userId: UUID
     var species: Species
+    var name: String = ""  // Pet's custom name
     var stage: Int
     var healthState: HealthState
     var consecutiveUnfedDays: Int
