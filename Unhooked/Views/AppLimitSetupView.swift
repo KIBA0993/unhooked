@@ -81,7 +81,17 @@ struct AppLimitSetupView: View {
                             Spacer()
                         }
                     }
+                    #if targetEnvironment(simulator)
+                    // In simulator, allow testing even without app selection
+                    .disabled(false)
+                    #else
                     .disabled(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty)
+                    #endif
+                } footer: {
+                    #if targetEnvironment(simulator)
+                    Text("⚠️ Simulator Mode: App selection won't work, but you can test the flow.")
+                        .foregroundStyle(.orange)
+                    #endif
                 }
             }
             .navigationTitle(isFirstTime ? "Setup App Limit" : "Update Limit")
@@ -141,7 +151,32 @@ struct AppLimitSetupView: View {
             return
         }
         
-        // Encode selection
+        #if targetEnvironment(simulator)
+        // In simulator, create mock data since FamilyActivityPicker doesn't work
+        print("🔵 Simulator: Saving with mock data")
+        let mockData = Data() // Empty data for simulator testing
+        
+        if let config = existingConfig {
+            config.selectedApps = mockData
+            config.limitMinutes = selectedLimit
+            config.lastChangedAt = Date()
+            print("✅ Updated existing config: \(selectedLimit) minutes")
+        } else {
+            let config = AppLimitConfig(
+                userId: viewModel.userId,
+                selectedApps: mockData,
+                limitMinutes: selectedLimit
+            )
+            modelContext.insert(config)
+            print("✅ Created new config: \(selectedLimit) minutes")
+        }
+        
+        try? modelContext.save()
+        dismiss()
+        return
+        #endif
+        
+        // Real device: Encode selection
         guard let encoded = try? JSONEncoder().encode(selection) else {
             errorMessage = "Failed to save app selection"
             showingError = true
