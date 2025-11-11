@@ -314,7 +314,7 @@ struct SettingsView: View {
                 .background(Color(red: 0.97, green: 0.97, blue: 0.97))
             }
             .frame(maxWidth: 480)
-            .frame(maxHeight: UIScreen.main.bounds.height * 0.9)
+            .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 24))
             .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
         }
@@ -363,8 +363,9 @@ struct SettingsView: View {
     }
     
     private func loadAppLimitConfig() {
+        let userId = viewModel.userId  // Capture in local variable for predicate
         let descriptor = FetchDescriptor<AppLimitConfig>(
-            predicate: #Predicate { $0.userId == viewModel.userId }
+            predicate: #Predicate { $0.userId == userId }
         )
         if let config = try? viewModel.modelContext.fetch(descriptor).first {
             currentAppLimitConfig = config
