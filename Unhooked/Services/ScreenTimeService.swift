@@ -21,12 +21,21 @@ class ScreenTimeService: ObservableObject {
     // MARK: - Authorization
     
     func requestAuthorization() async {
+        print("📱 Starting Screen Time authorization request...")
+        print("   Current status: \(AuthorizationCenter.shared.authorizationStatus)")
+        
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
-            isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
-            print("✅ Screen Time authorized: \(isAuthorized)")
+            let newStatus = AuthorizationCenter.shared.authorizationStatus
+            isAuthorized = newStatus == .approved
+            
+            print("✅ Screen Time authorization completed")
+            print("   New status: \(newStatus)")
+            print("   isAuthorized: \(isAuthorized)")
         } catch {
-            print("❌ Screen Time authorization failed: \(error)")
+            print("❌ Screen Time authorization failed")
+            print("   Error: \(error.localizedDescription)")
+            print("   Error details: \(error)")
             isAuthorized = false
         }
     }

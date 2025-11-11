@@ -82,11 +82,20 @@ struct SettingsView: View {
                                         }
                                     } else {
                                         Button("Authorize") {
+                                            print("🔵 Authorize button tapped")
                                             Task {
+                                                print("🔵 Requesting Screen Time authorization...")
                                                 await screenTimeService.requestAuthorization()
+                                                print("🔵 Authorization result: \(screenTimeService.isAuthorized)")
+                                                
                                                 // After authorization, show app limit setup
                                                 if screenTimeService.isAuthorized {
-                                                    showingAppLimitSetup = true
+                                                    print("✅ Authorized! Showing app limit setup...")
+                                                    await MainActor.run {
+                                                        showingAppLimitSetup = true
+                                                    }
+                                                } else {
+                                                    print("❌ Authorization denied or failed")
                                                 }
                                             }
                                         }
