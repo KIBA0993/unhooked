@@ -26,7 +26,7 @@ class AppViewModel {
     let widgetService: WidgetService  // Public for manual widget refresh
     
     // Persistent user identifier (syncs across devices via iCloud)
-    private let userId: UUID = {
+    let userId: UUID = {  // Public for app limit config
         let key = "com.unhooked.persistentUserId"
         
         // Use NSUbiquitousKeyValueStore for iCloud sync

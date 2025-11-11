@@ -244,8 +244,8 @@ struct UnlockUnlimitedChangesView: View {
         let success = viewModel.economyService.spendGems(
             userId: viewModel.userId,
             amount: 99,
-            reason: "unlock_unlimited_limit_changes",
-            relatedItemId: nil,
+            reason: .unlockFeature,
+            relatedItemId: "unlimited_limit_changes",
             idempotencyKey: UUID().uuidString
         )
         
@@ -272,7 +272,9 @@ struct FeatureRow: View {
 }
 
 #Preview {
-    AppLimitSetupView(isFirstTime: true, existingConfig: nil)
-        .environment(AppViewModel(modelContext: ModelContext(ModelContainer(for: Pet.self))))
+    let container = try! ModelContainer(for: Pet.self)
+    let context = ModelContext(container)
+    return AppLimitSetupView(isFirstTime: true, existingConfig: nil)
+        .environment(AppViewModel(modelContext: context))
 }
 

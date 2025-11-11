@@ -38,7 +38,10 @@ struct UnhookedApp: App {
             
             // Analytics & Flags
             AnalyticsEvent.self,
-            FeatureFlag.self
+            FeatureFlag.self,
+            
+            // App Limit
+            AppLimitConfig.self
         ])
         
         // Try CloudKit sync first, fall back to local-only if unavailable
