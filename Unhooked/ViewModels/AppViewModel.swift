@@ -14,9 +14,9 @@ import StoreKit
 @Observable
 class AppViewModel {
     // Services
-    private let modelContext: ModelContext
+    let modelContext: ModelContext  // Public for app limit config
     private let healthService: HealthService
-    private let economyService: EconomyService
+    let economyService: EconomyService  // Public for app limit IAP
     private let foodService: FoodService
     private let recoveryService: RecoveryService
     private let cosmeticsService: CosmeticsService

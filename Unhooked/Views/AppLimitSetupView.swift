@@ -244,7 +244,7 @@ struct UnlockUnlimitedChangesView: View {
         let success = viewModel.economyService.spendGems(
             userId: viewModel.userId,
             amount: 99,
-            reason: .unlockFeature,
+            reason: .adjustment,
             relatedItemId: "unlimited_limit_changes",
             idempotencyKey: UUID().uuidString
         )
