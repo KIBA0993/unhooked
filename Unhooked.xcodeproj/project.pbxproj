@@ -10,6 +10,9 @@
 		0F4F910C2EAB1A47006EFA0E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F4F910B2EAB1A47006EFA0E /* WidgetKit.framework */; };
 		0F4F910E2EAB1A47006EFA0E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F4F910D2EAB1A47006EFA0E /* SwiftUI.framework */; };
 		0F4F911D2EAB1A49006EFA0E /* UnhookedWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F4F91092EAB1A47006EFA0E /* UnhookedWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0F4F95122EC430EF006EFA0E /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F4F95112EC430EF006EFA0E /* DeviceActivity.framework */; };
+		0F4F951A2EC430EF006EFA0E /* UnhookedDeviceActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F4F95102EC430EF006EFA0E /* UnhookedDeviceActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0F4F95412EC43845006EFA0E /* UnhookedActivityReport.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 0F4F95352EC43845006EFA0E /* UnhookedActivityReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +37,20 @@
 			remoteGlobalIDString = 0F4F91082EAB1A47006EFA0E;
 			remoteInfo = UnhookedWidgetsExtension;
 		};
+		0F4F95182EC430EF006EFA0E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0F3193BD2EA1E31600202975 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0F4F950F2EC430EF006EFA0E;
+			remoteInfo = UnhookedDeviceActivity;
+		};
+		0F4F953F2EC43845006EFA0E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0F3193BD2EA1E31600202975 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0F4F95342EC43845006EFA0E;
+			remoteInfo = UnhookedActivityReport;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,9 +60,21 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				0F4F951A2EC430EF006EFA0E /* UnhookedDeviceActivity.appex in Embed Foundation Extensions */,
 				0F4F911D2EAB1A49006EFA0E /* UnhookedWidgetsExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4F95462EC43845006EFA0E /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				0F4F95412EC43845006EFA0E /* UnhookedActivityReport.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -58,6 +87,9 @@
 		0F4F910B2EAB1A47006EFA0E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		0F4F910D2EAB1A47006EFA0E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		0F4F912A2EAB201D006EFA0E /* UnhookedWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UnhookedWidgetsExtension.entitlements; sourceTree = "<group>"; };
+		0F4F95102EC430EF006EFA0E /* UnhookedDeviceActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = UnhookedDeviceActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F4F95112EC430EF006EFA0E /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
+		0F4F95352EC43845006EFA0E /* UnhookedActivityReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = UnhookedActivityReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +120,34 @@
 			);
 			target = 0F4F91082EAB1A47006EFA0E /* UnhookedWidgetsExtension */;
 		};
+		0F4F951E2EC430EF006EFA0E /* Exceptions for "UnhookedDeviceActivity" folder in "UnhookedDeviceActivity" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0F4F950F2EC430EF006EFA0E /* UnhookedDeviceActivity */;
+		};
+		0F4F95212EC4324F006EFA0E /* Exceptions for "Unhooked" folder in "UnhookedDeviceActivity" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/ScreenTimeUsage.swift,
+			);
+			target = 0F4F950F2EC430EF006EFA0E /* UnhookedDeviceActivity */;
+		};
+		0F4F95452EC43845006EFA0E /* Exceptions for "UnhookedActivityReport" folder in "UnhookedActivityReport" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0F4F95342EC43845006EFA0E /* UnhookedActivityReport */;
+		};
+		0F4F95492EC438D1006EFA0E /* Exceptions for "Unhooked" folder in "UnhookedActivityReport" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/ScreenTimeUsage.swift,
+			);
+			target = 0F4F95342EC43845006EFA0E /* UnhookedActivityReport */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -96,6 +156,8 @@
 			exceptions = (
 				0F4F91252EAB1DB9006EFA0E /* Exceptions for "Unhooked" folder in "Unhooked" target */,
 				0F4F91262EAB1DB9006EFA0E /* Exceptions for "Unhooked" folder in "UnhookedWidgetsExtension" target */,
+				0F4F95212EC4324F006EFA0E /* Exceptions for "Unhooked" folder in "UnhookedDeviceActivity" target */,
+				0F4F95492EC438D1006EFA0E /* Exceptions for "Unhooked" folder in "UnhookedActivityReport" target */,
 			);
 			path = Unhooked;
 			sourceTree = "<group>";
@@ -116,6 +178,22 @@
 				0F4F911E2EAB1A49006EFA0E /* Exceptions for "UnhookedWidgets" folder in "UnhookedWidgetsExtension" target */,
 			);
 			path = UnhookedWidgets;
+			sourceTree = "<group>";
+		};
+		0F4F95132EC430EF006EFA0E /* UnhookedDeviceActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0F4F951E2EC430EF006EFA0E /* Exceptions for "UnhookedDeviceActivity" folder in "UnhookedDeviceActivity" target */,
+			);
+			path = UnhookedDeviceActivity;
+			sourceTree = "<group>";
+		};
+		0F4F95362EC43845006EFA0E /* UnhookedActivityReport */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0F4F95452EC43845006EFA0E /* Exceptions for "UnhookedActivityReport" folder in "UnhookedActivityReport" target */,
+			);
+			path = UnhookedActivityReport;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -151,6 +229,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0F4F950D2EC430EF006EFA0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F4F95122EC430EF006EFA0E /* DeviceActivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4F95322EC43845006EFA0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -162,6 +255,8 @@
 				0F3193D72EA1E31800202975 /* UnhookedTests */,
 				0F3193E12EA1E31800202975 /* UnhookedUITests */,
 				0F4F910F2EAB1A47006EFA0E /* UnhookedWidgets */,
+				0F4F95132EC430EF006EFA0E /* UnhookedDeviceActivity */,
+				0F4F95362EC43845006EFA0E /* UnhookedActivityReport */,
 				0F4F910A2EAB1A47006EFA0E /* Frameworks */,
 				0F3193C62EA1E31600202975 /* Products */,
 			);
@@ -174,6 +269,8 @@
 				0F3193D42EA1E31800202975 /* UnhookedTests.xctest */,
 				0F3193DE2EA1E31800202975 /* UnhookedUITests.xctest */,
 				0F4F91092EAB1A47006EFA0E /* UnhookedWidgetsExtension.appex */,
+				0F4F95102EC430EF006EFA0E /* UnhookedDeviceActivity.appex */,
+				0F4F95352EC43845006EFA0E /* UnhookedActivityReport.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -183,6 +280,7 @@
 			children = (
 				0F4F910B2EAB1A47006EFA0E /* WidgetKit.framework */,
 				0F4F910D2EAB1A47006EFA0E /* SwiftUI.framework */,
+				0F4F95112EC430EF006EFA0E /* DeviceActivity.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -198,11 +296,14 @@
 				0F3193C22EA1E31600202975 /* Frameworks */,
 				0F3193C32EA1E31600202975 /* Resources */,
 				0F4F91222EAB1A49006EFA0E /* Embed Foundation Extensions */,
+				0F4F95462EC43845006EFA0E /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				0F4F911C2EAB1A49006EFA0E /* PBXTargetDependency */,
+				0F4F95192EC430EF006EFA0E /* PBXTargetDependency */,
+				0F4F95402EC43845006EFA0E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				0F3193C72EA1E31600202975 /* Unhooked */,
@@ -282,6 +383,50 @@
 			productReference = 0F4F91092EAB1A47006EFA0E /* UnhookedWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		0F4F950F2EC430EF006EFA0E /* UnhookedDeviceActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0F4F951B2EC430EF006EFA0E /* Build configuration list for PBXNativeTarget "UnhookedDeviceActivity" */;
+			buildPhases = (
+				0F4F950C2EC430EF006EFA0E /* Sources */,
+				0F4F950D2EC430EF006EFA0E /* Frameworks */,
+				0F4F950E2EC430EF006EFA0E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0F4F95132EC430EF006EFA0E /* UnhookedDeviceActivity */,
+			);
+			name = UnhookedDeviceActivity;
+			packageProductDependencies = (
+			);
+			productName = UnhookedDeviceActivity;
+			productReference = 0F4F95102EC430EF006EFA0E /* UnhookedDeviceActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		0F4F95342EC43845006EFA0E /* UnhookedActivityReport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0F4F95422EC43845006EFA0E /* Build configuration list for PBXNativeTarget "UnhookedActivityReport" */;
+			buildPhases = (
+				0F4F95312EC43845006EFA0E /* Sources */,
+				0F4F95322EC43845006EFA0E /* Frameworks */,
+				0F4F95332EC43845006EFA0E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0F4F95362EC43845006EFA0E /* UnhookedActivityReport */,
+			);
+			name = UnhookedActivityReport;
+			packageProductDependencies = (
+			);
+			productName = UnhookedActivityReport;
+			productReference = 0F4F95352EC43845006EFA0E /* UnhookedActivityReport.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -306,6 +451,12 @@
 					0F4F91082EAB1A47006EFA0E = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					0F4F950F2EC430EF006EFA0E = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					0F4F95342EC43845006EFA0E = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 				};
 			};
 			buildConfigurationList = 0F3193C02EA1E31600202975 /* Build configuration list for PBXProject "Unhooked" */;
@@ -326,6 +477,8 @@
 				0F3193D32EA1E31800202975 /* UnhookedTests */,
 				0F3193DD2EA1E31800202975 /* UnhookedUITests */,
 				0F4F91082EAB1A47006EFA0E /* UnhookedWidgetsExtension */,
+				0F4F950F2EC430EF006EFA0E /* UnhookedDeviceActivity */,
+				0F4F95342EC43845006EFA0E /* UnhookedActivityReport */,
 			);
 		};
 /* End PBXProject section */
@@ -353,6 +506,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0F4F91072EAB1A47006EFA0E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4F950E2EC430EF006EFA0E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4F95332EC43845006EFA0E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -390,6 +557,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0F4F950C2EC430EF006EFA0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4F95312EC43845006EFA0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -407,6 +588,16 @@
 			isa = PBXTargetDependency;
 			target = 0F4F91082EAB1A47006EFA0E /* UnhookedWidgetsExtension */;
 			targetProxy = 0F4F911B2EAB1A49006EFA0E /* PBXContainerItemProxy */;
+		};
+		0F4F95192EC430EF006EFA0E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0F4F950F2EC430EF006EFA0E /* UnhookedDeviceActivity */;
+			targetProxy = 0F4F95182EC430EF006EFA0E /* PBXContainerItemProxy */;
+		};
+		0F4F95402EC43845006EFA0E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0F4F95342EC43845006EFA0E /* UnhookedActivityReport */;
+			targetProxy = 0F4F953F2EC43845006EFA0E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -554,7 +745,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.Unhooked;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -578,7 +769,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unhooked/Unhooked.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HMANUK4X9Z;
+				DEVELOPMENT_TEAM = QLU5L66VM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -599,7 +790,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.Unhooked;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -625,7 +816,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.UnhookedTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -650,7 +841,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.UnhookedTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -674,7 +865,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.UnhookedUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -698,7 +889,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.UnhookedUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -733,7 +924,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.Unhooked.UnhookedWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -766,7 +957,133 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KIBA.Unhooked.UnhookedWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0F4F951C2EC430EF006EFA0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = UnhookedDeviceActivity/UnhookedDeviceActivityDebug.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QLU5L66VM5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UnhookedDeviceActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UnhookedDeviceActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.UnhookedDeviceActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0F4F951D2EC430EF006EFA0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = UnhookedDeviceActivity/UnhookedDeviceActivity.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QLU5L66VM5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UnhookedDeviceActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UnhookedDeviceActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.UnhookedDeviceActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0F4F95432EC43845006EFA0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = UnhookedActivityReport/UnhookedActivityReportDebug.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QLU5L66VM5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UnhookedActivityReport/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UnhookedActivityReport;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.UnhookedActivityReport;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0F4F95442EC43845006EFA0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = UnhookedActivityReport/UnhookedActivityReport.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QLU5L66VM5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UnhookedActivityReport/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UnhookedActivityReport;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kookytrove.unhooked.UnhookedActivityReport;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -824,6 +1141,24 @@
 			buildConfigurations = (
 				0F4F91202EAB1A49006EFA0E /* Debug */,
 				0F4F91212EAB1A49006EFA0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0F4F951B2EC430EF006EFA0E /* Build configuration list for PBXNativeTarget "UnhookedDeviceActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F4F951C2EC430EF006EFA0E /* Debug */,
+				0F4F951D2EC430EF006EFA0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0F4F95422EC43845006EFA0E /* Build configuration list for PBXNativeTarget "UnhookedActivityReport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F4F95432EC43845006EFA0E /* Debug */,
+				0F4F95442EC43845006EFA0E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -2,7 +2,7 @@
 //  RecoveryService.swift
 //  Unhooked
 //
-//  Handles Cure/Revive/Restart with cooldowns and limits
+//  Handles Cure/Revive/Restart actions
 //
 
 import Foundation
@@ -57,27 +57,6 @@ class RecoveryService {
         // Check state
         guard pet.healthState == .sick else {
             return .failure(.invalidState)
-        }
-        
-        // Check cooldown
-        if let violation = try checkCooldown(
-            userId: userId,
-            action: .cure,
-            cooldownHours: config.cureCooldownHours
-        ) {
-            return .failure(.cooldownActive(nextAvailable: violation))
-        }
-        
-        // Check limits
-        if config.limitsEnforced {
-            if try isLimitReached(
-                userId: userId,
-                action: .cure,
-                maxCount: config.cureMaxPer30Days,
-                windowDays: 30
-            ) {
-                return .failure(.limitReached)
-            }
         }
         
         // Check gems
@@ -136,27 +115,6 @@ class RecoveryService {
         
         guard pet.healthState == .dead else {
             return .failure(.invalidState)
-        }
-        
-        // Check cooldown
-        if let violation = try checkCooldown(
-            userId: userId,
-            action: .revive,
-            cooldownHours: config.reviveCooldownHours
-        ) {
-            return .failure(.cooldownActive(nextAvailable: violation))
-        }
-        
-        // Check limits
-        if config.limitsEnforced {
-            if try isLimitReached(
-                userId: userId,
-                action: .revive,
-                maxCount: config.reviveMaxPer90Days,
-                windowDays: 90
-            ) {
-                return .failure(.limitReached)
-            }
         }
         
         // Check gems
@@ -222,15 +180,6 @@ class RecoveryService {
             return .failure(.invalidState)
         }
         
-        // Check cooldown
-        if let violation = try checkCooldown(
-            userId: userId,
-            action: .restart,
-            cooldownHours: config.restartCooldownHours
-        ) {
-            return .failure(.cooldownActive(nextAvailable: violation))
-        }
-        
         // Check gems
         let wallet = try economyService.getWallet(userId: userId)
         guard wallet.gemsBalance >= config.restartGems else {
@@ -283,59 +232,6 @@ class RecoveryService {
         print("🔄 Restart successful! New \(newSpecies.rawValue) created.")
         
         return .success(newPet: newPet, message: "A fresh start begins now.")
-    }
-    
-    // MARK: - Cooldown & Limit Checks
-    
-    private func checkCooldown(
-        userId: UUID,
-        action: RecoveryActionType,
-        cooldownHours: Int
-    ) throws -> Date? {
-        let descriptor = FetchDescriptor<RecoveryAction>(
-            predicate: #Predicate { $0.userId == userId && $0.action == action },
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-        
-        guard let lastAction = try modelContext.fetch(descriptor).first else {
-            return nil  // No previous action
-        }
-        
-        let cooldownEnd = Calendar.current.date(
-            byAdding: .hour,
-            value: cooldownHours,
-            to: lastAction.timestamp
-        )!
-        
-        if Date() < cooldownEnd {
-            return cooldownEnd
-        }
-        
-        return nil
-    }
-    
-    private func isLimitReached(
-        userId: UUID,
-        action: RecoveryActionType,
-        maxCount: Int,
-        windowDays: Int
-    ) throws -> Bool {
-        let windowStart = Calendar.current.date(
-            byAdding: .day,
-            value: -windowDays,
-            to: Date()
-        )!
-        
-        let descriptor = FetchDescriptor<RecoveryAction>(
-            predicate: #Predicate { 
-                $0.userId == userId && 
-                $0.action == action && 
-                $0.timestamp >= windowStart
-            }
-        )
-        
-        let count = try modelContext.fetchCount(descriptor)
-        return count >= maxCount
     }
     
     // MARK: - Memorial
@@ -397,8 +293,6 @@ enum RestartResult {
 enum RecoveryError: Error {
     case featureDisabled
     case invalidState
-    case cooldownActive(nextAvailable: Date)
-    case limitReached
     case insufficientGems
 }
 

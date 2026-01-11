@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var showingPurchaseGems = false
     @State private var showingTutorial = false
     @State private var showingAppLimitSetup = false
+    @State private var showingDebugView = false
     @State private var currentAppLimitConfig: AppLimitConfig?
     @State private var authorizationError: String?
     @State private var showingAuthError = false
@@ -137,17 +138,77 @@ struct SettingsView: View {
                                     iconColor: Color.blue,
                                     title: currentAppLimitConfig == nil ? "Setup App Limit" : "Update App Limit",
                                     trailing: {
-                                        Button(currentAppLimitConfig == nil ? "Setup" : "Edit") {
-                                            showingAppLimitSetup = true
+                                        if let config = currentAppLimitConfig, !config.canChangeLimit {
+                                            // Show locked status with countdown
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "lock.fill")
+                                                    .font(.caption2)
+                                                Text("\(config.daysUntilNextChange)d")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                            }
+                                            .foregroundColor(.gray)
+                                        } else {
+                                            Button(currentAppLimitConfig == nil ? "Setup" : "Edit") {
+                                                showingAppLimitSetup = true
+                                            }
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.blue)
                                         }
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.blue)
                                     },
                                     subtitle: currentAppLimitConfig == nil
-                                        ? "Select apps and set your daily limit"
-                                        : "Limit: \(formatMinutes(currentAppLimitConfig!.limitMinutes))\(currentAppLimitConfig!.canChangeLimit ? "" : " • Next change in \(currentAppLimitConfig!.daysUntilNextChange)d")"
+                                        ? "Select one app and set your daily limit"
+                                        : subtitleForConfig(currentAppLimitConfig!)
+                                )
+                                
+                                // Show unlock option if locked
+                                if let config = currentAppLimitConfig, !config.canChangeLimit {
+                                    Button {
+                                        showingAppLimitSetup = true
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "lock.open.fill")
+                                            Text("Unlock Early (99 Gems)")
+                                            Spacer()
+                                            Image(systemName: "chevron.right")
+                                        }
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 12)
+                                    }
+                                }
+                            }
+                        }
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        
+                        separatorView()
+                        
+                        // Debug Section
+                        sectionHeader(title: "DEBUG")
+                        
+                        VStack(spacing: 0) {
+                            Button {
+                                showingDebugView = true
+                            } label: {
+                                SettingsRow(
+                                    icon: "ant.fill",
+                                    iconColor: .orange,
+                                    title: "Usage Tracking Debug",
+                                    trailing: {
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundColor(Color.gray.opacity(0.3))
+                                    },
+                                    subtitle: "Diagnose Screen Time tracking issues"
                                 )
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -357,23 +418,39 @@ struct SettingsView: View {
             TutorialView()
                 .background(Color.clear)
         }
-        .sheet(isPresented: $showingAppLimitSetup) {
+        .sheet(isPresented: $showingAppLimitSetup, onDismiss: loadAppLimitConfig) {
             AppLimitSetupView(
                 isFirstTime: currentAppLimitConfig == nil,
                 existingConfig: currentAppLimitConfig
             )
         }
+        .sheet(isPresented: $showingDebugView) {
+            DebugUsageView()
+                .environment(viewModel)
+        }
         .onAppear {
+            // Check Screen Time authorization status
+            screenTimeService.checkAuthorizationStatus()
+            print("🔵 Screen Time authorized: \(screenTimeService.isAuthorized)")
+            
+            // Load app limit config
             loadAppLimitConfig()
         }
         .alert("Screen Time Authorization", isPresented: $showingAuthError) {
-            Button("OK") { }
             #if targetEnvironment(simulator)
             Button("Skip to Setup (Testing)") {
                 // Allow testing the UI in simulator
                 showingAppLimitSetup = true
             }
+            #else
+            Button("Open Settings") {
+                // Open Settings app directly to Screen Time
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
             #endif
+            Button("OK", role: .cancel) { }
         } message: {
             if let error = authorizationError {
                 Text(error)
@@ -425,6 +502,17 @@ struct SettingsView: View {
             return "\(hours)h"
         } else {
             return "\(mins)m"
+        }
+    }
+    
+    private func subtitleForConfig(_ config: AppLimitConfig) -> String {
+        let limitText = "Limit: \(formatMinutes(config.limitMinutes))"
+        
+        if config.canChangeLimit {
+            return limitText + " • Can change anytime"
+        } else {
+            let days = config.daysUntilNextChange
+            return limitText + " • Locked for \(days) more day\(days == 1 ? "" : "s")"
         }
     }
 }

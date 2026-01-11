@@ -131,12 +131,12 @@ class FeatureFlagService {
 
 @Model
 final class FeatureFlag {
-    @Attribute(.unique) var key: String
-    var enabled: Bool
+    @Attribute(.unique) var key: String = ""
+    var enabled: Bool = false
     var value: String?
     var flagDescription: String?
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
     init(
         key: String,

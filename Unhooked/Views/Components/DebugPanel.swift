@@ -19,6 +19,12 @@ struct DebugPanel: View {
     let onSetGrowthProgress: (Int) -> Void
     let onResetGame: () -> Void
     let onSetTestState: (TestState) -> Void
+    let onClearUsageData: () -> Void
+    let onTestUsageRefresh: () -> Void
+    let onShowDiagnostics: () -> Void
+    let onManualSetUsage: (Int) -> Void
+    let onTestAppGroup: () -> Void
+    let onRestartMonitoring: () -> Void
     
     enum TestState: String, CaseIterable {
         case healthy = "Healthy"
@@ -202,6 +208,111 @@ struct DebugPanel: View {
                 
                 Divider()
                 
+                // Full Diagnostics
+                Button {
+                    onShowDiagnostics()
+                } label: {
+                    HStack {
+                        Image(systemName: "stethoscope")
+                        Text("Run Full Diagnostic")
+                    }
+                    .font(.caption.bold())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.yellow.opacity(0.3))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                // Test Usage Refresh
+                Button {
+                    onTestUsageRefresh()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Test Usage Refresh")
+                    }
+                    .font(.caption.bold())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.blue.opacity(0.3))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                // Clear Usage Data
+                Button {
+                    onClearUsageData()
+                } label: {
+                    HStack {
+                        Image(systemName: "trash.fill")
+                        Text("Clear Usage Data")
+                    }
+                    .font(.caption.bold())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.red.opacity(0.3))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                // Manual Usage Entry
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Set Usage (Test)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 6) {
+                        ForEach([10, 30, 60], id: \.self) { minutes in
+                            Button {
+                                onManualSetUsage(minutes)
+                            } label: {
+                                Text("\(minutes)m")
+                                    .font(.caption2.bold())
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(.teal.opacity(0.3))
+                                    .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                
+                // Test App Group Write/Read
+                Button {
+                    onTestAppGroup()
+                } label: {
+                    HStack {
+                        Image(systemName: "doc.text.magnifyingglass")
+                        Text("Test App Group I/O")
+                    }
+                    .font(.caption.bold())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.indigo.opacity(0.3))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                // Restart Monitoring
+                Button {
+                    onRestartMonitoring()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                        Text("Restart Monitoring")
+                    }
+                    .font(.caption.bold())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.orange.opacity(0.3))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
+                Divider()
+                
                 // Reset - Choose New Pet
                 Button {
                     onResetGame()
@@ -220,7 +331,7 @@ struct DebugPanel: View {
             }
             .padding(12)
         }
-        .frame(width: 180, height: 460)
+        .frame(width: 180, height: 580)
         .background(.black.opacity(0.9))
         .foregroundColor(.white)
         .cornerRadius(12)
@@ -245,7 +356,13 @@ struct DebugPanel: View {
             onSetUnfedDays: { _ in },
             onSetGrowthProgress: { _ in },
             onResetGame: {},
-            onSetTestState: { _ in }
+            onSetTestState: { _ in },
+            onClearUsageData: {},
+            onTestUsageRefresh: {},
+            onShowDiagnostics: {},
+            onManualSetUsage: { _ in },
+            onTestAppGroup: {},
+            onRestartMonitoring: {}
         )
     }
 }

@@ -56,7 +56,7 @@ class WidgetService {
     }
     
     private func saveWidgetData(_ data: PetWidgetData) {
-        guard let appGroup = UserDefaults(suiteName: "group.com.kiba.unhooked.shared") else {
+        guard let appGroup = UserDefaults(suiteName: "group.com.kookytrove.unhooked") else {
             print("⚠️ Failed to access App Group")
             return
         }

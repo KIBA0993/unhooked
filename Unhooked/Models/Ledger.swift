@@ -10,15 +10,15 @@ import SwiftData
 
 @Model
 final class LedgerEntry {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var currency: Currency
-    var delta: Int  // Positive for gains, negative for spending
-    var balanceAfter: Int
-    var reason: TransactionReason
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var currency: Currency = Currency.energy
+    var delta: Int = 0  // Positive for gains, negative for spending
+    var balanceAfter: Int = 0
+    var reason: TransactionReason = TransactionReason.adjustment
     var relatedItemId: String?  // Food item, cosmetic, etc.
     var idempotencyKey: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
     
     init(
         id: UUID = UUID(),
@@ -44,10 +44,10 @@ final class LedgerEntry {
 
 @Model
 final class Wallet {
-    @Attribute(.unique) var userId: UUID
+    @Attribute(.unique) var userId: UUID = UUID()
     var energyBalance: Int = 0
     var gemsBalance: Int = 0
-    var updatedAt: Date
+    var updatedAt: Date = Date()
     
     init(userId: UUID) {
         self.userId = userId

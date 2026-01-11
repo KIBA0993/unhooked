@@ -7,12 +7,45 @@
 		<key>Unhooked.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>UnhookedActivityReport.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>UnhookedDeviceActivity.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
 		</dict>
 		<key>UnhookedWidgetsExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>2</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>0F3193C42EA1E31600202975</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>0F4F91082EAB1A47006EFA0E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>0F4F950F2EC430EF006EFA0E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>0F4F95342EC43845006EFA0E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

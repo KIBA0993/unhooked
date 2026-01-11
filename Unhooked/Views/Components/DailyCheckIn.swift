@@ -8,13 +8,11 @@
 import SwiftUI
 
 struct DailyCheckIn: View {
-    @State private var showingSheet = false
-    @State private var usageMinutes: String = ""
-    @State private var limitMinutes: String = ""
-    
     let currentUsage: Int
     let currentLimit: Int
-    let onCheckIn: (Int, Int) -> Void
+    let energyBalance: Int
+    let onCheckIn: (Int, Int) -> Void  // Keeping for compatibility, but not used
+    let onRefresh: () -> Void  // New: manual refresh callback
     
     private var usageRatio: Double {
         guard currentLimit > 0 else { return 0 }
@@ -42,68 +40,92 @@ struct DailyCheckIn: View {
     }
     
     var body: some View {
-        Button {
-            showingSheet = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "clock.fill")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.black)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Screen Time")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.black.opacity(0.6))
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    if currentLimit > 0 {
-                        HStack(spacing: 6) {
-                            Text("\(currentUsage)/\(currentLimit)")
-                                .font(.system(size: 18, weight: .black, design: .rounded))
-                                .monospacedDigit()
-                                .foregroundColor(.black)
-                            Text("min")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.black.opacity(0.6))
-                        }
-                    } else {
-                        Text("0/120 min")
+                if currentLimit > 0 {
+                    HStack(spacing: 6) {
+                        Text("\(currentUsage)/\(currentLimit)")
                             .font(.system(size: 18, weight: .black, design: .rounded))
                             .monospacedDigit()
                             .foregroundColor(.black)
+                        Text("min")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.black.opacity(0.6))
                     }
+                } else {
+                    Text("Not set up")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.black.opacity(0.6))
                 }
-                
-                Spacer()
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "bolt.fill")
+            }
+            
+            Spacer()
+            
+            // Refresh button with test data option
+            if currentLimit > 0 {
+                Menu {
+                    Button("Refresh Usage") {
+                        print("👆 Refresh button tapped")
+                        onRefresh()
+                    }
+                    Button("Test: Add 5 min") {
+                        print("👆 Test: Add 5 min button tapped")
+                        let manager = ScreenTimeUsageManager.shared
+                        let current = manager.getCurrentMinutes()
+                        let newTotal = current + 5
+                        manager.forceSetUsage(minutes: newTotal)  // Use force for testing
+                        print("🧪 Test: Set to \(newTotal) minutes")
+                        onRefresh()
+                    }
+                    Button("Test: Reset to 0") {
+                        print("👆 Test: Reset to 0 button tapped")
+                        ScreenTimeUsageManager.shared.clearUsageData()
+                        print("🧪 Test: Reset to 0")
+                        onRefresh()
+                    }
+                    Button("Test: Set to 30") {
+                        print("👆 Test: Set to 30 button tapped")
+                        ScreenTimeUsageManager.shared.forceSetUsage(minutes: 30)
+                        print("🧪 Test: Set to 30 minutes")
+                        onRefresh()
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(RetroColors.yellow)
-                    
-                    Text("150")
-                        .font(.system(size: 16, weight: .black, design: .rounded))
-                        .monospacedDigit()
                         .foregroundColor(.black)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(8)
                 .background(.white)
                 .retroBorder(width: 3, cornerRadius: 8)
-                
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.black)
-                    .padding(8)
-                    .background(.white)
-                    .retroBorder(width: 3, cornerRadius: 8)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            
+            HStack(spacing: 8) {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(RetroColors.yellow)
+                
+                Text("\(energyBalance)")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundColor(.black)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .background(.white)
-            .retroBorder(width: 4, cornerRadius: 16)
-            .retroShadow(offset: 4)
+            .retroBorder(width: 3, cornerRadius: 8)
         }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showingSheet) {
-            checkInSheet
-        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.white)
+        .retroBorder(width: 4, cornerRadius: 16)
+        .retroShadow(offset: 4)
     }
+    
+    /* REMOVED: Manual check-in sheet - now using automatic Screen Time tracking
     
     private var checkInSheet: some View {
         NavigationStack {
@@ -199,14 +221,15 @@ struct DailyCheckIn: View {
         onCheckIn(usage, limit)
         showingSheet = false
     }
+    */
 }
 
 #Preview {
     VStack(spacing: 20) {
-        DailyCheckIn(currentUsage: 0, currentLimit: 0) { _, _ in }
-        DailyCheckIn(currentUsage: 60, currentLimit: 120) { _, _ in }
-        DailyCheckIn(currentUsage: 90, currentLimit: 120) { _, _ in }
-        DailyCheckIn(currentUsage: 150, currentLimit: 120) { _, _ in }
+        DailyCheckIn(currentUsage: 0, currentLimit: 0, energyBalance: 100, onCheckIn: { _, _ in }, onRefresh: {})
+        DailyCheckIn(currentUsage: 60, currentLimit: 120, energyBalance: 150, onCheckIn: { _, _ in }, onRefresh: {})
+        DailyCheckIn(currentUsage: 90, currentLimit: 120, energyBalance: 80, onCheckIn: { _, _ in }, onRefresh: {})
+        DailyCheckIn(currentUsage: 150, currentLimit: 120, energyBalance: 50, onCheckIn: { _, _ in }, onRefresh: {})
     }
     .padding()
     .background(RetroGradients.background)

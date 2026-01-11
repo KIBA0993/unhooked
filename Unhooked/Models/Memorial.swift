@@ -10,14 +10,14 @@ import SwiftData
 
 @Model
 final class Memorial {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var petSpecies: Species
-    var petStage: Int
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var petSpecies: Species = Species.cat
+    var petStage: Int = 0
     var petName: String?
     var snapshotImagePath: String?  // Local file path
-    var deathDate: Date
-    var createdAt: Date
+    var deathDate: Date = Date()
+    var createdAt: Date = Date()
     
     init(
         id: UUID = UUID(),
@@ -44,10 +44,10 @@ final class MemorialConfig {
     @Attribute(.unique) var id: String = "singleton"
     var enabled: Bool = true
     var maxSnapshotsPerUser: Int = 5
-    var updatedAt: Date
+    var updatedAt: Date = Date()
     
     init() {
-        self.updatedAt = Date()
+        // All defaults are set inline
     }
 }
 

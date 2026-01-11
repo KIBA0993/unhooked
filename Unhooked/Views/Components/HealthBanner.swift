@@ -213,9 +213,8 @@ struct HealthBanner: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity)
-        .background(Color.gray.opacity(0.1))
+        .background(Color.gray.opacity(0.15))
         .retroBorder(width: 3, color: .gray)
-        .retroShadow()
         .padding(.horizontal)
     }
 }
@@ -255,5 +254,7 @@ struct HealthBanner: View {
     .padding()
     .background(RetroGradients.background)
 }
+
+
 
 

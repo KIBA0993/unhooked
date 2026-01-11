@@ -24,6 +24,7 @@ class AppViewModel {
     private let analyticsService: AnalyticsService
     private let featureFlagService: FeatureFlagService
     let widgetService: WidgetService  // Public for manual widget refresh
+    let screenTimeService: ScreenTimeService  // Public for usage tracking
     
     // Persistent user identifier (syncs across devices via iCloud)
     let userId: UUID = {  // Public for app limit config
@@ -75,6 +76,9 @@ class AppViewModel {
     var currentAnimation: PetAnimation = .idle
     var trickVariant: Int = 0
     
+    // UI Refresh trigger - increment to force view updates
+    var refreshTrigger: Int = 0
+    
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         
@@ -101,6 +105,7 @@ class AppViewModel {
         self.analyticsService = AnalyticsService(modelContext: modelContext)
         self.featureFlagService = FeatureFlagService(modelContext: modelContext)
         self.widgetService = WidgetService(modelContext: modelContext)
+        self.screenTimeService = ScreenTimeService()
         
         Task {
             await initialize()
@@ -118,6 +123,9 @@ class AppViewModel {
             // Load or create pet
             currentPet = try loadOrCreatePet()
             
+            // Sync app limit from config to pet
+            try syncAppLimitToPet()
+            
             // Load wallet
             wallet = try economyService.getWallet(userId: userId)
             updateBalances()
@@ -128,9 +136,66 @@ class AppViewModel {
             // Start transaction observer
             iapService.startTransactionObserver(userId: userId)
             
+            // Start Live Activity (Dynamic Island)
+            if let pet = currentPet, #available(iOS 16.2, *) {
+                widgetService.startLiveActivity(pet: pet, energyBalance: energyBalance)
+            }
+            
+            // Check for daily reset immediately on app launch
+            await checkAndPerformDailyReset()
+            
+            // Start periodic Screen Time usage updates (every 5 minutes)
+            startPeriodicUsageSync()
+            
             print("✅ App initialized")
         } catch {
             print("❌ Initialization error: \(error)")
+        }
+    }
+    
+    private func startPeriodicUsageSync() {
+        // Update usage every 5 minutes AND check for daily reset
+        Task {
+            while !Task.isCancelled {
+                // Check if day has changed (daily reset at midnight)
+                await checkAndPerformDailyReset()
+                
+                // Update current usage
+                await updateUsageFromScreenTime()
+                
+                try? await Task.sleep(nanoseconds: 300_000_000_000) // 5 minutes
+            }
+        }
+    }
+    
+    private func checkAndPerformDailyReset() async {
+        guard let pet = currentPet else { return }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Check if lastResetDate is nil or from a previous day
+        if pet.lastResetDate == nil || !calendar.isDate(pet.lastResetDate!, inSameDayAs: today) {
+            print("🌅 New day detected! Performing daily reset...")
+            print("   Last reset: \(pet.lastResetDate?.description ?? "never")")
+            print("   Today: \(today)")
+            
+            // Get yesterday's usage data for the energy award
+            let usageMinutes = pet.currentUsage
+            let limitMinutes = pet.currentLimit > 0 ? pet.currentLimit : 120 // Default 2h if not set
+            
+            print("   Yesterday's usage: \(usageMinutes)/\(limitMinutes) minutes")
+            
+            // Perform the daily reset which awards energy based on yesterday's performance
+            await performDailyReset(usageMinutes: usageMinutes, limitMinutes: limitMinutes)
+            
+            // Update lastResetDate to today
+            pet.lastResetDate = today
+            pet.currentUsage = 0 // Reset usage counter for new day
+            
+            try? modelContext.save()
+            
+            print("✅ Daily reset complete! Energy awarded based on yesterday's usage")
         }
     }
     
@@ -151,6 +216,106 @@ class AppViewModel {
         
         print("🐱 Created first pet!")
         return pet
+    }
+    
+    private func syncAppLimitToPet() throws {
+        guard let pet = currentPet else { return }
+        
+        // Load app limit config
+        let descriptor = FetchDescriptor<AppLimitConfig>(
+            predicate: #Predicate { $0.userId == userId }
+        )
+        
+        if let config = try modelContext.fetch(descriptor).first {
+            // Sync limit from config to pet
+            pet.currentLimit = config.limitMinutes
+            try modelContext.save()
+            print("✅ Synced app limit to pet: \(config.limitMinutes) minutes")
+        } else {
+            print("ℹ️ No app limit config found")
+        }
+    }
+    
+    func refreshPet() async {
+        do {
+            let descriptor = FetchDescriptor<Pet>(
+                predicate: #Predicate { $0.userId == userId },
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
+            
+            if let pet = try modelContext.fetch(descriptor).first {
+                await MainActor.run {
+                    currentPet = pet
+                    print("🔄 Pet refreshed - currentLimit: \(pet.currentLimit)")
+                }
+                
+                // Also update usage from Screen Time
+                await updateUsageFromScreenTime()
+            }
+        } catch {
+            print("❌ Failed to refresh pet: \(error)")
+        }
+    }
+    
+    /// Synchronously refresh the current pet from database (for use after recovery)
+    func refreshCurrentPet() {
+        do {
+            let descriptor = FetchDescriptor<Pet>(
+                predicate: #Predicate { $0.userId == userId },
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
+            
+            if let pet = try modelContext.fetch(descriptor).first {
+                let oldHealthState = currentPet?.healthState
+                
+                // The pet object is the same (SwiftData identity), 
+                // so we need to force a view refresh by incrementing trigger
+                refreshTrigger += 1
+                
+                // Also reassign to ensure currentPet is up to date
+                currentPet = pet
+                
+                print("🔄 Pet refreshed - health: \(oldHealthState?.rawValue ?? "nil") → \(pet.healthState.rawValue)")
+                print("   refreshTrigger: \(refreshTrigger)")
+            }
+        } catch {
+            print("❌ Failed to refresh pet: \(error)")
+        }
+    }
+    
+    /// Update the pet's current usage from Screen Time shared data
+    func updateUsageFromScreenTime() async {
+        print("🔄 updateUsageFromScreenTime() called")
+        guard let pet = currentPet else {
+            print("❌ No current pet found")
+            return
+        }
+        
+        let usageManager = ScreenTimeUsageManager.shared
+        print("📱 Attempting to load usage data from App Group...")
+        
+        if let usage = usageManager.loadUsage() {
+            print("✅ Loaded usage data: \(usage.totalMinutes) minutes, date: \(usage.dateString)")
+            if usage.isToday {
+                let oldUsage = pet.currentUsage
+                pet.currentUsage = usage.totalMinutes
+                try? modelContext.save()
+                print("📊 Updated pet usage: \(oldUsage) → \(usage.totalMinutes) minutes")
+                
+                // Force UI update by reassigning currentPet
+                // This triggers @Observable to notify views
+                await MainActor.run {
+                    let tempPet = currentPet
+                    currentPet = nil
+                    currentPet = tempPet
+                    print("🔄 Forced view refresh")
+                }
+            } else {
+                print("⚠️ Usage data is from previous day, not updating")
+            }
+        } else {
+            print("❌ No usage data found in App Group")
+        }
     }
     
     private func updateBalances() {
@@ -227,6 +392,21 @@ class AppViewModel {
         }
     }
     
+    /// Reset the usage display to 0 (for debugging/clearing stale data)
+    func resetUsageDisplay() {
+        guard let pet = currentPet else { return }
+        
+        pet.currentUsage = 0
+        screenTimeService.todayUsage = 0
+        
+        do {
+            try modelContext.save()
+            print("🗑️ Usage display reset to 0")
+        } catch {
+            print("❌ Failed to reset usage: \(error)")
+        }
+    }
+    
     // MARK: - Pet Actions
     
     func feedPet(foodItemId: String) async {
@@ -245,7 +425,12 @@ class AppViewModel {
                 updateBalances()
                 print("✅ Fed pet: +\(fullnessDelta)% fullness")
                 
-                // Play animation if available
+                // Trigger eating animation
+                await MainActor.run {
+                    triggerAnimation(.eating)
+                }
+                
+                // Play food-specific animation if available
                 if let animId = animationId {
                     print("🎬 Play animation: \(animId)")
                 }
@@ -271,6 +456,7 @@ class AppViewModel {
             case .trick: return 1.2
             case .pet: return 0.6
             case .nap: return 4.5
+            case .eating: return 1.2
             }
         }()
         
@@ -301,12 +487,26 @@ class AppViewModel {
         analyticsService.trackRecoveryViewed(state: currentPet?.healthState ?? .healthy)
     }
     
-    func performRecovery() async {
+    /// Returns true if recovery was successful
+    func performRecovery() async -> Bool {
+        print("🔄 performRecovery() called")
+        print("   currentPet: \(currentPet != nil ? "exists" : "nil")")
+        print("   currentPet.healthState: \(currentPet?.healthState.rawValue ?? "nil")")
+        print("   recoveryAction: \(String(describing: recoveryAction))")
+        print("   gemsBalance: \(gemsBalance)")
+        
         guard let pet = currentPet,
-              let action = recoveryAction else { return }
+              let action = recoveryAction else {
+            print("❌ Guard failed - pet: \(currentPet != nil), action: \(recoveryAction != nil)")
+            return false
+        }
+        
+        print("✅ Guard passed - pet exists, action: \(action)")
         
         do {
             let idempotencyKey = UUID().uuidString
+            print("🔑 Idempotency key: \(idempotencyKey)")
+            print("🔄 Calling recoveryService.\(action)...")
             
             switch action {
             case .cure:
@@ -315,8 +515,8 @@ class AppViewModel {
                     pet: pet,
                     idempotencyKey: idempotencyKey
                 )
-                
-                handleRecoveryResult(result, action: .cure)
+                print("📋 Cure result: \(result)")
+                return handleRecoveryResult(result, action: .cure)
                 
             case .revive:
                 let result = try recoveryService.revive(
@@ -324,58 +524,73 @@ class AppViewModel {
                     pet: pet,
                     idempotencyKey: idempotencyKey
                 )
-                
-                handleRecoveryResult(result, action: .revive)
+                print("📋 Revive result: \(result)")
+                return handleRecoveryResult(result, action: .revive)
                 
             case .restart:
-                // Would show species selection first
                 let restartResult = try recoveryService.restart(
                     userId: userId,
                     oldPet: pet,
-                    newSpecies: .cat,  // Default, would be user choice
+                    newSpecies: pet.species,
                     idempotencyKey: idempotencyKey
                 )
+                print("📋 Restart result: \(restartResult)")
                 
                 switch restartResult {
                 case .success(let newPet, let message):
                     currentPet = newPet
+                    refreshTrigger += 1
                     updateBalances()
                     showRecoveryModal = false
-                    print("✅ \(message)")
+                    recoveryAction = nil
+                    print("✅ \(message) - New pet created!")
+                    return true
                     
                 case .failure(let error):
                     handleRecoveryError(error)
+                    return false
                 }
             }
         } catch {
-            print("❌ Recovery error: \(error)")
+            print("❌ Recovery EXCEPTION: \(error)")
+            return false
         }
     }
     
-    private func handleRecoveryResult(_ result: RecoveryResult, action: RecoveryActionType) {
+    @discardableResult
+    private func handleRecoveryResult(_ result: RecoveryResult, action: RecoveryActionType) -> Bool {
         switch result {
-        case .success(_, let message, _):
+        case .success(let newState, let message, _):
+            print("✅ Recovery SUCCESS: \(message)")
+            print("   New health state: \(newState)")
+            
+            // Force refresh the pet from database to get updated state
+            refreshCurrentPet()
+            
+            if let pet = currentPet {
+                print("   Pet after refresh - health: \(pet.healthState), fragile: \(pet.isFragile)")
+            }
+            
             updateBalances()
             showRecoveryModal = false
-            print("✅ \(message)")
+            recoveryAction = nil
             
             analyticsService.trackRecoveryCompleted(
                 action: action,
-                costGems: 0,  // Would get from config
+                costGems: 0,
                 cooldownNextAt: Date().addingTimeInterval(86400)
             )
+            return true
             
         case .failure(let error):
+            print("❌ Recovery FAILED: \(error)")
             handleRecoveryError(error)
+            return false
         }
     }
     
     private func handleRecoveryError(_ error: RecoveryError) {
         switch error {
-        case .cooldownActive(let nextAvailable):
-            print("⏰ Cooldown active until \(nextAvailable)")
-        case .limitReached:
-            print("🚫 Limit reached")
         case .insufficientGems:
             print("💎 Not enough Gems")
         case .invalidState:
@@ -526,6 +741,12 @@ class AppViewModel {
             try modelContext.save()
             currentPet = newPet
             updateBalances()
+            
+            // Start Live Activity for new pet
+            if #available(iOS 16.2, *) {
+                widgetService.startLiveActivity(pet: newPet, energyBalance: energyBalance)
+            }
+            
             print("✅ New \(species.rawValue) '\(name)' created!")
         } catch {
             print("❌ Failed to create pet: \(error)")

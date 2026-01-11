@@ -99,6 +99,7 @@ struct PixelPet: View {
                 .offset(x: 50, y: -40)
                 .transition(.opacity)
             }
+            
         }
         .onChange(of: currentAnimation) { _, _ in
             animationTrigger = UUID()
@@ -143,6 +144,10 @@ struct PixelPet: View {
                     showZzz = false
                 }
             }
+            
+        case .eating:
+            // Full-screen animation handled by FeedingAnimationView
+            break
             
         case .idle:
             break
@@ -455,6 +460,9 @@ struct AnimationModifier: ViewModifier {
             performPetAnimation()
         case .nap:
             performNapAnimation()
+        case .eating:
+            // Full-screen animation handled separately
+            break
         case .idle:
             startIdleAnimation()
         }
@@ -551,6 +559,22 @@ struct AnimationModifier: ViewModifier {
                 rotationAngle = 0
                 scale = 1.0
             }
+        }
+    }
+    
+    private func performEatingAnimation() {
+        // Bounce animation - like munching food
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+            scale = 1.1
+        }
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.5).delay(0.3)) {
+            scale = 1.0
+        }
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.5).delay(0.6)) {
+            scale = 1.1
+        }
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.5).delay(0.9)) {
+            scale = 1.0
         }
     }
 }

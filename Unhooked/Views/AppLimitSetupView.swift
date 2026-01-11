@@ -13,10 +13,10 @@ struct AppLimitSetupView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppViewModel.self) private var viewModel
     @Environment(\.modelContext) private var modelContext
+    @StateObject private var screenTimeService = ScreenTimeService()
     
     @State private var selection = FamilyActivitySelection()
     @State private var selectedLimit: Int = 180  // Default 3 hours
-    @State private var showingPaywall = false
     @State private var showingError = false
     @State private var errorMessage = ""
     
@@ -28,14 +28,74 @@ struct AppLimitSetupView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Show lock info if waiting period is active
+                if let config = existingConfig, !config.canChangeLimit {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "lock.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Change Locked")
+                                    .font(.headline)
+                                    .foregroundStyle(.orange)
+                            }
+                            
+                            Text("You can change your limit again in \(config.daysUntilNextChange) day\(config.daysUntilNextChange == 1 ? "" : "s"), or pay to unlock now.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            // Pay to unlock this change
+                            Button {
+                                purchaseSingleEarlyChange()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "lock.open.fill")
+                                    Text("Unlock Now")
+                                    Spacer()
+                                    Text("\(AppLimitConfig.earlyChangeCost) 💎")
+                                        .fontWeight(.bold)
+                                }
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.white)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+                
                 // App Selection Section
                 Section {
                     FamilyActivityPicker(selection: $selection)
                         .frame(height: 300)
+                        .disabled(existingConfig != nil && !existingConfig!.canChangeLimit)
+                        .opacity(existingConfig != nil && !existingConfig!.canChangeLimit ? 0.5 : 1.0)
+                        .onChange(of: selection) { oldValue, newValue in
+                            // Limit to only ONE app
+                            if newValue.applicationTokens.count > 1 {
+                                // Keep only the most recently selected app
+                                let lastToken = Array(newValue.applicationTokens).last!
+                                selection.applicationTokens = Set([lastToken])
+                                selection.categoryTokens = []
+                                selection.webDomainTokens = []
+                            }
+                            // Don't allow category/domain selection, only specific apps
+                            if !newValue.categoryTokens.isEmpty || !newValue.webDomainTokens.isEmpty {
+                                selection.categoryTokens = []
+                                selection.webDomainTokens = []
+                            }
+                        }
                 } header: {
-                    Text("Select Apps to Track")
+                    Text("Select ONE App to Track")
                 } footer: {
-                    Text("Choose which apps count toward your daily limit")
+                    if existingConfig != nil && !existingConfig!.canChangeLimit {
+                        Text("🔒 Unlock unlimited changes to modify your app selection")
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text("Choose one app that counts toward your daily limit")
+                    }
                 }
                 
                 // Time Limit Section
@@ -47,51 +107,46 @@ struct AppLimitSetupView: View {
                         }
                     }
                     .pickerStyle(.wheel)
+                    .disabled(existingConfig != nil && !existingConfig!.canChangeLimit)
+                    .opacity(existingConfig != nil && !existingConfig!.canChangeLimit ? 0.5 : 1.0)
                 } header: {
                     Text("Daily Time Limit")
                 } footer: {
                     if let config = existingConfig, !config.canChangeLimit {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("⏱️ You can change your limit again in \(config.daysUntilNextChange) days")
-                                .foregroundStyle(.orange)
-                            
-                            Button {
-                                showingPaywall = true
-                            } label: {
-                                Label("Unlock Unlimited Changes", systemImage: "lock.open.fill")
-                                    .foregroundStyle(.blue)
-                            }
-                        }
+                        Text("🔒 Wait \(config.daysUntilNextChange) day\(config.daysUntilNextChange == 1 ? "" : "s") or pay \(AppLimitConfig.earlyChangeCost) gems to change now")
+                            .foregroundStyle(.orange)
                     } else if isFirstTime {
-                        Text("You can change this once immediately. After that, changes require a 7-day wait or premium unlock.")
+                        Text("First time setup is free. After this, you must wait 7 days or pay gems to change.")
                     } else {
-                        Text("This is your free change! Next change requires 7-day wait or premium unlock.")
+                        Text("After saving, you must wait 7 days to change again (or pay gems).")
                     }
                 }
                 
                 // Save Button
-                Section {
-                    Button {
-                        saveConfiguration()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text(isFirstTime ? "Start Tracking" : "Update Limit")
-                                .fontWeight(.semibold)
-                            Spacer()
+                if existingConfig == nil || existingConfig!.canChangeLimit {
+                    Section {
+                        Button {
+                            saveConfiguration()
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text(isFirstTime ? "Start Tracking" : "Update Limit")
+                                    .fontWeight(.semibold)
+                                Spacer()
+                            }
                         }
+                        #if targetEnvironment(simulator)
+                        // In simulator, allow testing even without app selection
+                        .disabled(false)
+                        #else
+                        .disabled(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty)
+                        #endif
+                    } footer: {
+                        #if targetEnvironment(simulator)
+                        Text("⚠️ Simulator Mode: App selection won't work, but you can test the flow.")
+                            .foregroundStyle(.orange)
+                        #endif
                     }
-                    #if targetEnvironment(simulator)
-                    // In simulator, allow testing even without app selection
-                    .disabled(false)
-                    #else
-                    .disabled(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty)
-                    #endif
-                } footer: {
-                    #if targetEnvironment(simulator)
-                    Text("⚠️ Simulator Mode: App selection won't work, but you can test the flow.")
-                        .foregroundStyle(.orange)
-                    #endif
                 }
             }
             .navigationTitle(isFirstTime ? "Setup App Limit" : "Update Limit")
@@ -102,17 +157,6 @@ struct AppLimitSetupView: View {
                         dismiss()
                     }
                 }
-            }
-            .sheet(isPresented: $showingPaywall) {
-                UnlockUnlimitedChangesView(
-                    onPurchase: {
-                        if let config = existingConfig {
-                            config.hasUnlockedUnlimitedChanges = true
-                            try? modelContext.save()
-                        }
-                        showingPaywall = false
-                    }
-                )
             }
             .alert("Cannot Update", isPresented: $showingError) {
                 Button("OK") { }
@@ -143,6 +187,32 @@ struct AppLimitSetupView: View {
         }
     }
     
+    private func purchaseSingleEarlyChange() {
+        guard let config = existingConfig else { return }
+        
+        do {
+            let success = try viewModel.economyService.spendGems(
+                userId: viewModel.userId,
+                amount: AppLimitConfig.earlyChangeCost,
+                reason: .adjustment,
+                relatedItemId: "early_limit_change",
+                idempotencyKey: UUID().uuidString
+            )
+            
+            if success {
+                config.earlyChangeUnlocked = true
+                try? modelContext.save()
+                print("✅ Unlocked single early change")
+            } else {
+                errorMessage = "Not enough gems. You need \(AppLimitConfig.earlyChangeCost) gems."
+                showingError = true
+            }
+        } catch {
+            errorMessage = "Failed to purchase: \(error.localizedDescription)"
+            showingError = true
+        }
+    }
+    
     private func saveConfiguration() {
         // Check if can change (for existing configs)
         if let config = existingConfig, !config.canChangeLimit {
@@ -159,7 +229,7 @@ struct AppLimitSetupView: View {
         if let config = existingConfig {
             config.selectedApps = mockData
             config.limitMinutes = selectedLimit
-            config.lastChangedAt = Date()
+            config.recordChange()  // Records change and consumes early unlock if active
             print("✅ Updated existing config: \(selectedLimit) minutes")
         } else {
             let config = AppLimitConfig(
@@ -171,7 +241,27 @@ struct AppLimitSetupView: View {
             print("✅ Created new config: \(selectedLimit) minutes")
         }
         
-        try? modelContext.save()
+        // Update the Pet's currentLimit so the UI bar updates
+        if let pet = viewModel.currentPet {
+            pet.currentLimit = selectedLimit
+            print("✅ Updated pet currentLimit to \(selectedLimit) minutes")
+        }
+        
+        do {
+            try modelContext.save()
+            print("✅ Saved modelContext successfully")
+        } catch {
+            print("❌ Failed to save modelContext: \(error)")
+        }
+        
+        // Start monitoring (won't actually work in simulator but sets up the structure)
+        screenTimeService.startMonitoring(with: selection)
+        
+        // Force UI refresh by triggering viewModel update
+        Task { @MainActor in
+            await viewModel.refreshPet()
+        }
+        
         dismiss()
         return
         #endif
@@ -187,7 +277,7 @@ struct AppLimitSetupView: View {
             // Update existing
             config.selectedApps = encoded
             config.limitMinutes = selectedLimit
-            config.lastChangedAt = Date()
+            config.recordChange()  // Records change and consumes early unlock if active
         } else {
             // Create new
             let config = AppLimitConfig(
@@ -198,117 +288,31 @@ struct AppLimitSetupView: View {
             modelContext.insert(config)
         }
         
-        try? modelContext.save()
+        // Update the Pet's currentLimit so the UI bar updates
+        if let pet = viewModel.currentPet {
+            pet.currentLimit = selectedLimit
+            print("✅ Updated pet.currentLimit to \(selectedLimit) minutes")
+        }
+        
+        do {
+            try modelContext.save()
+            print("✅ Saved modelContext successfully")
+        } catch {
+            print("❌ Failed to save modelContext: \(error)")
+        }
+        
+        // Start monitoring with the selected app
+        screenTimeService.startMonitoring(with: selection)
+        
+        // Force UI refresh by triggering viewModel update
+        Task { @MainActor in
+            await viewModel.refreshPet()
+        }
+        
         dismiss()
     }
 }
 
-// MARK: - Unlock Paywall View
-
-struct UnlockUnlimitedChangesView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(AppViewModel.self) private var viewModel
-    
-    let onPurchase: () -> Void
-    
-    // Assuming you have this product in your IAP list
-    private let productId = "com.unhooked.unlimited_limit_changes"
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Spacer()
-                
-                Image(systemName: "lock.open.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.blue)
-                
-                Text("Unlock Unlimited Changes")
-                    .font(.title.bold())
-                
-                Text("Change your app limits anytime without waiting 7 days between changes")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal)
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    FeatureRow(icon: "clock.arrow.2.circlepath", text: "Change limits anytime")
-                    FeatureRow(icon: "slider.horizontal.3", text: "Adjust as your needs change")
-                    FeatureRow(icon: "checkmark.seal.fill", text: "One-time purchase")
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                Button {
-                    purchaseUnlock()
-                } label: {
-                    Text("Unlock for 99 Gems")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal)
-                
-                Button("Maybe Later") {
-                    dismiss()
-                }
-                .foregroundStyle(.secondary)
-                .padding(.bottom)
-            }
-            .navigationTitle("Premium Feature")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func purchaseUnlock() {
-        // Spend gems to unlock
-        do {
-            let success = try viewModel.economyService.spendGems(
-                userId: viewModel.userId,
-                amount: 99,
-                reason: .adjustment,
-                relatedItemId: "unlimited_limit_changes",
-                idempotencyKey: UUID().uuidString
-            )
-            
-            if success {
-                onPurchase()
-                dismiss()
-            }
-        } catch {
-            print("❌ Failed to spend gems: \(error)")
-        }
-    }
-}
-
-struct FeatureRow: View {
-    let icon: String
-    let text: String
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(.blue)
-                .frame(width: 24)
-            Text(text)
-            Spacer()
-        }
-    }
-}
 
 #Preview {
     let container = try! ModelContainer(for: Pet.self)

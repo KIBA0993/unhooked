@@ -44,7 +44,7 @@ struct PetWidgetProvider: TimelineProvider {
     }
     
     private func loadWidgetData() -> PetWidgetData? {
-        guard let appGroup = UserDefaults(suiteName: "group.com.kiba.unhooked.shared"),
+        guard let appGroup = UserDefaults(suiteName: "group.com.kookytrove.unhooked"),
               let data = appGroup.data(forKey: "petWidgetData"),
               let widgetData = try? JSONDecoder().decode(PetWidgetData.self, from: data) else {
             return nil
@@ -620,19 +620,24 @@ struct PetWidgetView: View {
     let entry: PetWidgetEntry
     
     var body: some View {
-        switch family {
-        case .systemSmall:
-            PetWidgetSmallView(data: entry.petData)
-        case .systemMedium:
-            PetWidgetMediumView(data: entry.petData)
-        case .systemLarge:
-            PetWidgetLargeView(data: entry.petData)
-        case .accessoryCircular:
-            accessoryCircularView
-        case .accessoryRectangular:
-            accessoryRectangularView
-        default:
-            PetWidgetSmallView(data: entry.petData)
+        Group {
+            switch family {
+            case .systemSmall:
+                PetWidgetSmallView(data: entry.petData)
+            case .systemMedium:
+                PetWidgetMediumView(data: entry.petData)
+            case .systemLarge:
+                PetWidgetLargeView(data: entry.petData)
+            case .accessoryCircular:
+                accessoryCircularView
+            case .accessoryRectangular:
+                accessoryRectangularView
+            default:
+                PetWidgetSmallView(data: entry.petData)
+            }
+        }
+        .containerBackground(for: .widget) {
+            Color.clear
         }
     }
     
@@ -699,6 +704,9 @@ struct UnhookedWidgets: WidgetBundle {
     @WidgetBundleBuilder
     var body: some Widget {
         PetWidget()
+        if #available(iOS 16.2, *) {
+            PetLiveActivity()
+        }
     }
 }
 

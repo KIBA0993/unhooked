@@ -44,26 +44,12 @@ struct UnhookedApp: App {
             AppLimitConfig.self
         ])
         
-        // Try CloudKit sync first, fall back to local-only if unavailable
-        let modelConfiguration: ModelConfiguration
-        
-        // Check if CloudKit is available (user signed into iCloud)
-        if FileManager.default.ubiquityIdentityToken != nil {
-            // iCloud available - enable CloudKit sync
-            modelConfiguration = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false,
-                cloudKitDatabase: .private("iCloud.com.unhooked.app")
-            )
-            print("☁️ iCloud sync enabled")
-        } else {
-            // iCloud not available - use local storage only
-            modelConfiguration = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false
-            )
-            print("📱 Local storage only (iCloud not available)")
-        }
+        // Use local storage only (CloudKit disabled for now)
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false
+        )
+        print("📱 Local storage only")
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

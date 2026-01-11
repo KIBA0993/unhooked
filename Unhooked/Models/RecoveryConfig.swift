@@ -17,39 +17,29 @@ final class RecoveryConfig {
     var reviveDeadGems: Int = 400
     var restartGems: Int = 200
     
-    // Cooldowns (hours)
-    var cureCooldownHours: Int = 24
-    var reviveCooldownHours: Int = 168  // 7 days
-    var restartCooldownHours: Int = 24
-    
-    // Limits
-    var cureMaxPer30Days: Int = 5
-    var reviveMaxPer90Days: Int = 2
-    
-    // Fragile state
+    // Fragile state (after revive)
     var fragileDays: Int = 3
     var fragileBuffCap: Double = 0.15
     
-    // Feature flags
+    // Feature flag
     var enabled: Bool = true
-    var limitsEnforced: Bool = true
     
-    var updatedAt: Date
+    var updatedAt: Date = Date()
     
     init() {
-        self.updatedAt = Date()
+        // All defaults are set inline
     }
 }
 
 @Model
 final class RecoveryAction {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var petId: UUID
-    var action: RecoveryActionType
-    var gemsSpent: Int
-    var timestamp: Date
-    var idempotencyKey: String
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var petId: UUID = UUID()
+    var action: RecoveryActionType = RecoveryActionType.cure
+    var gemsSpent: Int = 0
+    var timestamp: Date = Date()
+    var idempotencyKey: String = ""
     
     init(
         id: UUID = UUID(),
@@ -69,10 +59,12 @@ final class RecoveryAction {
     }
 }
 
-enum RecoveryActionType: String, Codable {
+enum RecoveryActionType: String, Codable, Identifiable {
     case cure
     case revive
     case restart
+    
+    var id: String { rawValue }
 }
 
 

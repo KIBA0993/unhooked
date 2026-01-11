@@ -10,14 +10,14 @@ import SwiftData
 
 @Model
 final class DailyStats {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var date: String  // yyyy-MM-dd format
-    var usageMinutes: Int
-    var limitMinutes: Int
-    var rSmooth: Double  // Smoothed ratio r
-    var energyAwarded: Int
-    var createdAt: Date
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var date: String = ""  // yyyy-MM-dd format
+    var usageMinutes: Int = 0
+    var limitMinutes: Int = 60
+    var rSmooth: Double = 0.0  // Smoothed ratio r
+    var energyAwarded: Int = 0
+    var createdAt: Date = Date()
     
     init(
         id: UUID = UUID(),

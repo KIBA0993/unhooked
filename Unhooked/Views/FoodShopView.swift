@@ -16,6 +16,8 @@ struct FoodShopView: View {
     @State private var availableItems: [FoodCatalogItem] = []
     @State private var isLoading = true
     
+    var onFeedAnimationTrigger: ((String) -> Void)?  // Callback to trigger feeding animation
+    
     private var pet: Pet? {
         viewModel.currentPet
     }
@@ -190,7 +192,13 @@ struct FoodShopView: View {
     }
     
     private func purchaseFood(_ item: FoodCatalogItem) async {
+        // Trigger feeding animation with food emoji
+        onFeedAnimationTrigger?(item.emoji)
+        
         await viewModel.feedPet(foodItemId: item.itemId)
+        
+        // Close shop after successful feed
+        dismiss()
     }
 }
 

@@ -192,12 +192,12 @@ class AnalyticsService {
 
 @Model
 final class AnalyticsEvent {
-    @Attribute(.unique) var id: UUID
-    var eventName: String
-    var propertiesData: Data
+    @Attribute(.unique) var id: UUID = UUID()
+    var eventName: String = ""
+    var propertiesData: Data = Data()
     var sent: Bool = false
     var sentAt: Date?
-    var createdAt: Date
+    var createdAt: Date = Date()
     
     init(eventName: String, properties: [String: String] = [:]) {
         self.id = UUID()

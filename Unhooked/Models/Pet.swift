@@ -10,17 +10,17 @@ import SwiftData
 
 @Model
 final class Pet {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var species: Species
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var species: Species = Species.cat
     var name: String = ""  // Pet's custom name
-    var stage: Int
-    var healthState: HealthState
-    var consecutiveUnfedDays: Int
+    var stage: Int = 0
+    var healthState: HealthState = HealthState.healthy
+    var consecutiveUnfedDays: Int = 0
     var fragileUntil: Date?
     var deadAt: Date?
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
     // Stats
     var fullness: Double = 100.0  // 0-100%
@@ -35,6 +35,7 @@ final class Pet {
     var dailyBuffAccumulated: Double = 0.0
     var todayFoodSpend: Int = 0  // Total energy spent on food today
     var lastEnergyAward: Int = 0  // Last daily energy award amount
+    var lastResetDate: Date?  // Last time daily reset was performed
     
     // Usage tracking
     var currentUsage: Int = 0  // Minutes of screen time today

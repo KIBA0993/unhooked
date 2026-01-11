@@ -10,15 +10,15 @@ import SwiftData
 
 @Model
 final class FoodCatalogItem {
-    @Attribute(.unique) var itemId: String
-    var title: String
-    var priceEnergy: Int  // 25-150
-    var speciesScope: SpeciesScope
+    @Attribute(.unique) var itemId: String = ""
+    var title: String = ""
+    var priceEnergy: Int = 25  // 25-150
+    var speciesScope: SpeciesScope = SpeciesScope.both
     
     // Default stats
-    var defaultFullnessDelta: Int  // 10-60%
-    var defaultMoodDelta: Int  // 1-3
-    var defaultBuffFrac: Double  // 0.00-0.15
+    var defaultFullnessDelta: Int = 10  // 10-60%
+    var defaultMoodDelta: Int = 1  // 1-3
+    var defaultBuffFrac: Double = 0.0  // 0.00-0.15
     
     // Species-specific overrides (stored as JSON)
     var speciesOverridesData: Data?
@@ -28,8 +28,8 @@ final class FoodCatalogItem {
     var seasonalEndUTC: Date?
     
     var isEnabled: Bool = true
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
     init(
         itemId: String,

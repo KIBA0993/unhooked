@@ -137,6 +137,7 @@ enum PetAnimation {
     case trick
     case pet
     case nap
+    case eating
 }
 
 #Preview {

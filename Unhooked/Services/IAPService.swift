@@ -218,16 +218,16 @@ class IAPService: ObservableObject {
 
 @Model
 final class IAPurchase {
-    @Attribute(.unique) var id: UUID
-    var userId: UUID
-    var transactionId: String
-    var productId: String
-    var gemsAwarded: Int
-    var priceUSD: Double
+    @Attribute(.unique) var id: UUID = UUID()
+    var userId: UUID = UUID()
+    var transactionId: String = ""
+    var productId: String = ""
+    var gemsAwarded: Int = 0
+    var priceUSD: Double = 0.0
     var refunded: Bool = false
     var refundedAt: Date?
-    var idempotencyKey: String
-    var createdAt: Date
+    var idempotencyKey: String = ""
+    var createdAt: Date = Date()
     
     init(
         userId: UUID,
