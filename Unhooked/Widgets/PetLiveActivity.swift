@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island Live Activity with Pixel Pet
+//  Dynamic Island Live Activity - Pet sits ON TOP of the island
 //
 
 import SwiftUI
@@ -14,6 +14,7 @@ import WidgetKit
 struct PixelPetHead: View {
     let species: String
     let scale: CGFloat
+    let mood: String  // "happy", "hungry", "sleeping", "playing", "sick"
     
     var body: some View {
         VStack(spacing: 0) {
@@ -31,44 +32,165 @@ struct PixelPetHead: View {
     }
     
     private func getHeadPixels() -> [[String]] {
+        // Adjust eyes based on mood
         if species == "cat" {
-            return [
-                [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
-                [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
-                [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],
-                [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
-                [".", "K", "O", "G", "O", "O", "G", "O", "K", "."],
-                [".", "K", "O", "g", "O", "O", "g", "O", "K", "."],
-                [".", "K", "O", "O", "P", "P", "O", "O", "K", "."],
-                [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
-            ]
+            switch mood {
+            case "sleeping":
+                return catSleeping()
+            case "hungry":
+                return catHungry()
+            case "sick":
+                return catSick()
+            default:
+                return catHappy()
+            }
         } else {
-            return [
-                ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
-                ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
-                ["E", "E", "K", "K", "K", "K", "K", "K", "E", "E"],
-                [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
-                [".", "K", "C", "G", "C", "C", "G", "C", "K", "."],
-                [".", "K", "C", "g", "C", "C", "g", "C", "K", "."],
-                [".", "K", "C", "C", "N", "N", "C", "C", "K", "."],
-                [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
-            ]
+            switch mood {
+            case "sleeping":
+                return dogSleeping()
+            case "hungry":
+                return dogHungry()
+            case "sick":
+                return dogSick()
+            default:
+                return dogHappy()
+            }
         }
+    }
+    
+    // CAT SPRITES
+    private func catHappy() -> [[String]] {
+        return [
+            [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
+            [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
+            [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "G", "O", "O", "G", "O", "K", "."],
+            [".", "K", "O", "g", "O", "O", "g", "O", "K", "."],
+            [".", "K", "O", "O", "P", "P", "O", "O", "K", "."],
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func catSleeping() -> [[String]] {
+        return [
+            [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
+            [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
+            [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "K", "K", "O", "K", "K", "K", "."],  // Closed eyes
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "O", "P", "P", "O", "O", "K", "."],
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func catHungry() -> [[String]] {
+        return [
+            [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
+            [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
+            [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "G", "O", "O", "G", "O", "K", "."],
+            [".", "K", "O", "g", "O", "O", "g", "O", "K", "."],
+            [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],  // Open mouth
+            [".", ".", "K", "K", "R", "R", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func catSick() -> [[String]] {
+        return [
+            [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
+            [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
+            [".", "K", "O", "K", "K", "K", "K", "O", "K", "."],
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "X", "O", "O", "X", "O", "K", "."],  // X eyes
+            [".", "K", "O", "O", "O", "O", "O", "O", "K", "."],
+            [".", "K", "O", "O", "~", "~", "O", "O", "K", "."],  // Wavy mouth
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
+    }
+    
+    // DOG SPRITES
+    private func dogHappy() -> [[String]] {
+        return [
+            ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
+            ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
+            ["E", "E", "K", "K", "K", "K", "K", "K", "E", "E"],
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "G", "C", "C", "G", "C", "K", "."],
+            [".", "K", "C", "g", "C", "C", "g", "C", "K", "."],
+            [".", "K", "C", "C", "N", "N", "C", "C", "K", "."],
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func dogSleeping() -> [[String]] {
+        return [
+            ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
+            ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
+            ["E", "E", "K", "K", "K", "K", "K", "K", "E", "E"],
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "K", "K", "C", "K", "K", "K", "."],  // Closed eyes
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "C", "N", "N", "C", "C", "K", "."],
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func dogHungry() -> [[String]] {
+        return [
+            ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
+            ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
+            ["E", "E", "K", "K", "K", "K", "K", "K", "E", "E"],
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "G", "C", "C", "G", "C", "K", "."],
+            [".", "K", "C", "g", "C", "C", "g", "C", "K", "."],
+            [".", "K", "C", "K", "K", "K", "K", "C", "K", "."],  // Open mouth
+            [".", ".", "K", "K", "R", "R", "K", "K", ".", "."],
+        ]
+    }
+    
+    private func dogSick() -> [[String]] {
+        return [
+            ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
+            ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
+            ["E", "E", "K", "K", "K", "K", "K", "K", "E", "E"],
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "X", "C", "C", "X", "C", "K", "."],  // X eyes
+            [".", "K", "C", "C", "C", "C", "C", "C", "K", "."],
+            [".", "K", "C", "C", "~", "~", "C", "C", "K", "."],  // Wavy mouth
+            [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
+        ]
     }
     
     private func getColor(for pixel: String) -> Color {
         switch pixel {
         case ".": return .clear
         case "K": return .black
-        case "O": return Color(red: 1.0, green: 0.65, blue: 0.0)
-        case "G": return Color(red: 0.56, green: 0.93, blue: 0.56)
-        case "g": return Color(red: 0.13, green: 0.55, blue: 0.13)
-        case "P": return Color(red: 1.0, green: 0.71, blue: 0.76)
-        case "C": return Color(red: 1.0, green: 0.89, blue: 0.77)
-        case "E": return Color(red: 0.55, green: 0.27, blue: 0.07)
-        case "N": return Color(red: 0.2, green: 0.2, blue: 0.2)
+        case "O": return Color(red: 1.0, green: 0.65, blue: 0.0)  // Orange
+        case "G": return Color(red: 0.56, green: 0.93, blue: 0.56)  // Light green
+        case "g": return Color(red: 0.13, green: 0.55, blue: 0.13)  // Dark green
+        case "P": return Color(red: 1.0, green: 0.71, blue: 0.76)  // Pink
+        case "C": return Color(red: 1.0, green: 0.89, blue: 0.77)  // Cream
+        case "E": return Color(red: 0.55, green: 0.27, blue: 0.07)  // Brown
+        case "N": return Color(red: 0.2, green: 0.2, blue: 0.2)  // Dark nose
+        case "R": return Color(red: 0.9, green: 0.3, blue: 0.3)  // Red tongue
+        case "X": return Color(red: 0.4, green: 0.4, blue: 0.4)  // X eyes
+        case "~": return Color(red: 0.6, green: 0.6, blue: 0.6)  // Wavy mouth
         default: return .clear
         }
+    }
+}
+
+// MARK: - Status Dot
+struct StatusDot: View {
+    let color: Color
+    
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 6, height: 6)
     }
 }
 
@@ -78,14 +200,17 @@ struct PixelPetHead: View {
 struct PetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PetActivityAttributes.self) { context in
-            // Lock screen banner
             lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
                 // EXPANDED STATE
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 8) {
-                        PixelPetHead(species: context.state.petSpecies, scale: 4)
+                        PixelPetHead(
+                            species: context.state.petSpecies,
+                            scale: 4,
+                            mood: getMood(context: context)
+                        )
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text(context.state.petName)
@@ -153,38 +278,69 @@ struct PetLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                // COMPACT: Pet peeking above - use frame + offset
-                ZStack {
-                    PixelPetHead(species: context.state.petSpecies, scale: 2.5)
-                        .offset(y: -8) // Push up to peek above
+                // PET SITTING ON TOP OF ISLAND
+                // Frame is larger to contain the offset without clipping
+                ZStack(alignment: .bottom) {
+                    // Pet sprite with negative offset to sit ABOVE the island
+                    PixelPetHead(
+                        species: context.state.petSpecies,
+                        scale: 2.8,
+                        mood: getMood(context: context)
+                    )
+                    .offset(y: -18)  // Push UP to sit on top of island
                 }
-                .frame(width: 28, height: 28)
+                .frame(width: 32, height: 44)  // Tall frame to contain offset
                 .clipped()
+                
             } compactTrailing: {
-                HStack(spacing: 2) {
-                    Image(systemName: "bolt.fill")
-                        .foregroundStyle(.yellow)
+                // Status inside the pill
+                HStack(spacing: 3) {
+                    StatusDot(color: getStatusColor(context: context))
                     Text("\(context.state.energyBalance)")
-                        .monospacedDigit()
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 }
-                .font(.caption2)
             } minimal: {
                 // MINIMAL: Pet peeking
-                ZStack {
-                    PixelPetHead(species: context.state.petSpecies, scale: 2)
-                        .offset(y: -6)
+                ZStack(alignment: .bottom) {
+                    PixelPetHead(
+                        species: context.state.petSpecies,
+                        scale: 2,
+                        mood: getMood(context: context)
+                    )
+                    .offset(y: -12)
                 }
-                .frame(width: 22, height: 22)
+                .frame(width: 24, height: 32)
                 .clipped()
             }
         }
+    }
+    
+    // MARK: - Mood based on state
+    
+    private func getMood(context: ActivityViewContext<PetActivityAttributes>) -> String {
+        if context.state.healthState == "sick" { return "sick" }
+        if context.state.isSleeping { return "sleeping" }
+        if context.state.hunger < 30 { return "hungry" }
+        if context.state.currentAnimation == "playing" { return "happy" }
+        return "happy"
+    }
+    
+    private func getStatusColor(context: ActivityViewContext<PetActivityAttributes>) -> Color {
+        if context.state.isCritical { return .red }
+        if context.state.needsAttention { return .orange }
+        if context.state.isSleeping { return .cyan }
+        return .green
     }
     
     // MARK: - Lock Screen View
     
     private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
-            PixelPetHead(species: context.state.petSpecies, scale: 5)
+            PixelPetHead(
+                species: context.state.petSpecies,
+                scale: 5,
+                mood: getMood(context: context)
+            )
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(context.state.petName) • Stage \(context.state.petStage)")
