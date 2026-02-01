@@ -32,7 +32,19 @@ class UnhookedDeviceActivityMonitor: DeviceActivityMonitor {
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
         super.eventDidReachThreshold(event, activity: activity)
         
-        print("📱 DeviceActivity threshold reached: \(event)")
+        print("📱 DeviceActivity threshold reached: \(event.rawValue)")
+        
+        // Parse minutes from event name (e.g., "threshold_30min" -> 30)
+        let eventString = event.rawValue
+        if eventString.hasPrefix("threshold_") && eventString.hasSuffix("min") {
+            let start = eventString.index(eventString.startIndex, offsetBy: 10) // "threshold_".count
+            let end = eventString.index(eventString.endIndex, offsetBy: -3) // remove "min"
+            if let minutes = Int(eventString[start..<end]) {
+                print("📊 Parsed \(minutes) minutes from threshold event")
+                let accepted = usageManager.updateUsage(newMinutes: minutes)
+                print(accepted ? "✅ Usage updated to \(minutes) mins" : "❌ Usage update rejected")
+            }
+        }
     }
     
     override func intervalWillStartWarning(for activity: DeviceActivityName) {
@@ -70,5 +82,3 @@ class UnhookedDeviceActivityMonitor: DeviceActivityMonitor {
 //    NSExtension -> NSExtensionPrincipalClass = "$(PRODUCT_MODULE_NAME).UnhookedDeviceActivityMonitor"
 // 4. Add the ScreenTimeUsage.swift file to both main app and extension targets
 // 5. Enable Family Controls and DeviceActivity capabilities
-
-
