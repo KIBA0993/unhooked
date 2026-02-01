@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet sits ON TOP like Hit'Em
+//  Dynamic Island - Pet peeks from top edge
 //
 
 import SwiftUI
@@ -14,7 +14,6 @@ import WidgetKit
 struct PixelPetSprite: View {
     let species: String
     let scale: CGFloat
-    let mood: String
     
     var body: some View {
         VStack(spacing: 0) {
@@ -84,7 +83,7 @@ struct PetLiveActivity: Widget {
                 // EXPANDED
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 8) {
-                        PixelPetSprite(species: context.state.petSpecies, scale: 4, mood: "happy")
+                        PixelPetSprite(species: context.state.petSpecies, scale: 4)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(context.state.petName).font(.caption).fontWeight(.semibold)
                             Text("Stage \(context.state.petStage)").font(.caption2).foregroundStyle(.secondary)
@@ -140,7 +139,6 @@ struct PetLiveActivity: Widget {
                         
                         Spacer()
                         
-                        // Health status
                         let healthColor: Color = context.state.healthState == "healthy" ? .green : .orange
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark.circle.fill")
@@ -154,12 +152,14 @@ struct PetLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                // HIT'EM STYLE: Pet pops OUT of the island
-                // NO clipping - let it overflow!
-                PixelPetSprite(species: context.state.petSpecies, scale: 3, mood: "happy")
-                    .offset(y: -22)  // Aggressive offset - like Hit'Em's -20
-                    .frame(width: 36, height: 36)
-                    // NO .clipped() - let it overflow above!
+                // Pet aligned to TOP of the compact area
+                // This positions it at the top edge of the island
+                VStack {
+                    PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
+                    Spacer(minLength: 0)
+                }
+                .frame(height: 36)
+                .padding(.leading, 4)
                     
             } compactTrailing: {
                 HStack(spacing: 3) {
@@ -170,17 +170,18 @@ struct PetLiveActivity: Widget {
                         .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 }
             } minimal: {
-                // Minimal - pet peeking
-                PixelPetSprite(species: context.state.petSpecies, scale: 2.5, mood: "happy")
-                    .offset(y: -16)
-                    .frame(width: 28, height: 28)
+                VStack {
+                    PixelPetSprite(species: context.state.petSpecies, scale: 2)
+                    Spacer(minLength: 0)
+                }
+                .frame(height: 28)
             }
         }
     }
     
     private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
-            PixelPetSprite(species: context.state.petSpecies, scale: 5, mood: "happy")
+            PixelPetSprite(species: context.state.petSpecies, scale: 5)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(context.state.petName) • Stage \(context.state.petStage)")
