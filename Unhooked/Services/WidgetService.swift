@@ -83,7 +83,6 @@ class WidgetService {
             Task { await activity.end(nil, dismissalPolicy: .immediate) }
         }
         
-        // Create new activity
         let attributes = PetActivityAttributes(userId: pet.userId, petId: pet.id)
         let initialState = createContentState(pet: pet, energyBalance: energyBalance)
         
@@ -100,10 +99,10 @@ class WidgetService {
     }
     
     @available(iOS 16.2, *)
-    func updateLiveActivity(pet: Pet, energyBalance: Int, isSleeping: Bool = false) {
+    func updateLiveActivity(pet: Pet, energyBalance: Int, isSleeping: Bool = false, animation: String = "") {
         guard dynamicIslandEnabled else { return }
         
-        let updatedState = createContentState(pet: pet, energyBalance: energyBalance, isSleeping: isSleeping)
+        let updatedState = createContentState(pet: pet, energyBalance: energyBalance, isSleeping: isSleeping, animation: animation)
         
         Task {
             for activity in Activity<PetActivityAttributes>.activities {
@@ -114,7 +113,7 @@ class WidgetService {
     }
     
     @available(iOS 16.2, *)
-    private func createContentState(pet: Pet, energyBalance: Int, isSleeping: Bool = false) -> PetActivityAttributes.ContentState {
+    private func createContentState(pet: Pet, energyBalance: Int, isSleeping: Bool = false, animation: String = "") -> PetActivityAttributes.ContentState {
         let hungerLevel = Int(pet.fullness)
         let happinessLevel = pet.mood * 10
         let energyLevel = pet.healthState == .dead ? 0 : (pet.healthState == .sick ? 30 : 80)
@@ -133,7 +132,8 @@ class WidgetService {
             isFragile: pet.isFragile,
             isSleeping: isSleeping,
             needsAttention: needsAttention,
-            isCritical: isCritical
+            isCritical: isCritical,
+            currentAnimation: animation
         )
     }
     
@@ -185,6 +185,9 @@ struct PetActivityAttributes: ActivityAttributes {
         let isSleeping: Bool
         let needsAttention: Bool
         let isCritical: Bool
+        
+        // Animation state ("", "eating", "playing", "petting")
+        let currentAnimation: String
         
         var statusColor: String {
             if isCritical { return "red" }
