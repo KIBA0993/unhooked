@@ -129,7 +129,7 @@ struct PetLiveActivity: Widget {
                         HStack(spacing: 3) {
                             Image(systemName: "heart.fill")
                                 .foregroundStyle(.pink)
-                            Text("\(context.state.fullness)%")
+                            Text("\(context.state.hunger)%")
                         }
                         
                         HStack(spacing: 3) {
@@ -145,7 +145,7 @@ struct PetLiveActivity: Widget {
                     HStack(spacing: 16) {
                         statBadge(
                             icon: "heart.fill",
-                            value: "\(context.state.fullness)%",
+                            value: "\(context.state.hunger)%",
                             color: .pink
                         )
                         
@@ -211,7 +211,7 @@ struct PetLiveActivity: Widget {
                     HStack(spacing: 3) {
                         Image(systemName: "heart.fill")
                             .foregroundStyle(.pink)
-                        Text("\(context.state.fullness)%")
+                        Text("\(context.state.hunger)%")
                     }
                     
                     HStack(spacing: 3) {
