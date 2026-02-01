@@ -15,6 +15,7 @@ import WidgetKit
 class WidgetService {
     private let modelContext: ModelContext
     
+    // Widget preferences (using UserDefaults for service layer)
     private var widgetEnabled: Bool {
         UserDefaults.standard.bool(forKey: "widget.enabled")
     }
@@ -32,6 +33,7 @@ class WidgetService {
     func updateWidgets(pet: Pet, energyBalance: Int, gemsBalance: Int) {
         guard widgetEnabled else { return }
         
+        // Create shared data for widgets
         let widgetData = PetWidgetData(
             petSpecies: pet.species,
             petStage: pet.stage,
@@ -44,8 +46,12 @@ class WidgetService {
             lastUpdate: Date()
         )
         
+        // Save to App Group for widget access
         saveWidgetData(widgetData)
+        
+        // Trigger widget reload
         WidgetCenter.shared.reloadAllTimelines()
+        
         print("🔄 Widgets updated")
     }
     
@@ -65,26 +71,81 @@ class WidgetService {
     
     @available(iOS 16.2, *)
     func startLiveActivity(pet: Pet, energyBalance: Int) {
-        print("🔵 Starting Live Activity...")
+        print("\n" + String(repeating: "=", count: 60))
+        print("🔵 ATTEMPTING TO START LIVE ACTIVITY")
+        print(String(repeating: "=", count: 60))
+        
+        // Check 1: Toggle enabled?
+        print("\n📱 Check 1: App Settings")
+        print("  - dynamicIslandEnabled: \(dynamicIslandEnabled)")
         
         guard dynamicIslandEnabled else { 
-            print("❌ Dynamic Island toggle is OFF")
+            print("❌ FAILED: Dynamic Island toggle is OFF in app settings")
+            print("   Solution: Turn on the toggle in Settings > Widgets & Live Activity")
+            print(String(repeating: "=", count: 60) + "\n")
             return 
         }
+        print("  ✅ Toggle is ON")
         
+        // Check 2: iOS permissions
+        print("\n🔐 Check 2: iOS Permissions")
         let authInfo = ActivityAuthorizationInfo()
+        print("  - areActivitiesEnabled: \(authInfo.areActivitiesEnabled)")
+        
         guard authInfo.areActivitiesEnabled else {
-            print("❌ Live Activities not authorized")
+            print("❌ FAILED: Live Activities not authorized in iOS Settings")
+            print("   Solution: Open iOS Settings app > Unhooked > Enable 'Live Activities'")
+            print(String(repeating: "=", count: 60) + "\n")
             return
         }
+        print("  ✅ iOS permissions granted")
         
-        // Stop existing activities
-        for activity in Activity<PetActivityAttributes>.activities {
-            Task { await activity.end(nil, dismissalPolicy: .immediate) }
+        // Check 3: Device capability
+        print("\n📲 Check 3: Device Capability")
+        print("  - Device: \(UIDevice.current.model)")
+        print("  - System: \(UIDevice.current.systemVersion)")
+        
+        // Check 4: Stop existing activities
+        print("\n🔄 Check 4: Cleaning up existing activities")
+        let existingActivities = Activity<PetActivityAttributes>.activities
+        print("  - Found \(existingActivities.count) existing activities")
+        for activity in existingActivities {
+            print("    - Ending activity: \(activity.id)")
+            Task {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
         }
         
+        // Check 5: Create new activity
+        print("\n✨ Check 5: Creating new Live Activity")
         let attributes = PetActivityAttributes(userId: pet.userId, petId: pet.id)
-        let initialState = createContentState(pet: pet, energyBalance: energyBalance)
+        
+        // Calculate status levels
+        let hungerLevel = Int(pet.fullness)
+        let happinessLevel = pet.mood * 10  // mood is 1-10, convert to 0-100
+        let energyLevel = pet.healthState == .dead ? 0 : (pet.healthState == .sick ? 30 : 80)
+        let needsAttention = hungerLevel < 50 || happinessLevel < 50
+        let isCritical = hungerLevel < 20 || pet.healthState == .sick || pet.healthState == .dead
+        
+        let initialState = PetActivityAttributes.ContentState(
+            petSpecies: pet.species.rawValue,
+            petStage: pet.stage,
+            petName: pet.name.isEmpty ? pet.species.rawValue.capitalized : pet.name,
+            healthState: pet.healthState.rawValue,
+            hunger: hungerLevel,
+            happiness: happinessLevel,
+            energy: energyLevel,
+            energyBalance: energyBalance,
+            isFragile: pet.isFragile,
+            isSleeping: false,
+            needsAttention: needsAttention,
+            isCritical: isCritical,
+            currentAnimation: ""
+        )
+        
+        print("  - Pet: \(pet.species.rawValue) (Stage \(pet.stage))")
+        print("  - Health: \(pet.healthState.rawValue)")
+        print("  - Energy: \(energyBalance)")
         
         do {
             let activity = try Activity.request(
@@ -92,9 +153,26 @@ class WidgetService {
                 content: .init(state: initialState, staleDate: nil),
                 pushType: nil
             )
-            print("🎉 Live Activity created: \(activity.id)")
+            
+            print("\n🎉 SUCCESS! Live Activity created!")
+            print("  - Activity ID: \(activity.id)")
+            print("  - State: \(activity.activityState)")
+            print("  - Content: \(activity.content)")
+            print("\n💡 Look at the top of your screen near the status bar!")
+            print("   You should see: \(pet.species == .cat ? "🐱" : "🐶")")
+            print(String(repeating: "=", count: 60) + "\n")
         } catch {
-            print("❌ Failed to create Live Activity: \(error)")
+            print("\n❌ FAILED TO CREATE LIVE ACTIVITY")
+            print("  - Error: \(error.localizedDescription)")
+            print("  - Full Error: \(error)")
+            print("  - Error Type: \(type(of: error))")
+            
+            print("\n🔍 Possible reasons:")
+            print("  1. Not on iPhone 14 Pro or later (Dynamic Island required)")
+            print("  2. Live Activities disabled in iOS Settings > Unhooked")
+            print("  3. PetLiveActivity not properly registered in widget extension")
+            print("  4. Simulator may need restart")
+            print(String(repeating: "=", count: 60) + "\n")
         }
     }
     
@@ -102,25 +180,14 @@ class WidgetService {
     func updateLiveActivity(pet: Pet, energyBalance: Int, isSleeping: Bool = false, animation: String = "") {
         guard dynamicIslandEnabled else { return }
         
-        let updatedState = createContentState(pet: pet, energyBalance: energyBalance, isSleeping: isSleeping, animation: animation)
-        
-        Task {
-            for activity in Activity<PetActivityAttributes>.activities {
-                await activity.update(.init(state: updatedState, staleDate: nil))
-            }
-        }
-        print("🔄 Live Activity updated")
-    }
-    
-    @available(iOS 16.2, *)
-    private func createContentState(pet: Pet, energyBalance: Int, isSleeping: Bool = false, animation: String = "") -> PetActivityAttributes.ContentState {
+        // Calculate status levels
         let hungerLevel = Int(pet.fullness)
         let happinessLevel = pet.mood * 10
         let energyLevel = pet.healthState == .dead ? 0 : (pet.healthState == .sick ? 30 : 80)
         let needsAttention = hungerLevel < 50 || happinessLevel < 50
         let isCritical = hungerLevel < 20 || pet.healthState == .sick || pet.healthState == .dead
         
-        return PetActivityAttributes.ContentState(
+        var updatedState = PetActivityAttributes.ContentState(
             petSpecies: pet.species.rawValue,
             petStage: pet.stage,
             petName: pet.name.isEmpty ? pet.species.rawValue.capitalized : pet.name,
@@ -135,6 +202,16 @@ class WidgetService {
             isCritical: isCritical,
             currentAnimation: animation
         )
+        
+        Task {
+            for activity in Activity<PetActivityAttributes>.activities {
+                await activity.update(
+                    .init(state: updatedState, staleDate: nil)
+                )
+            }
+        }
+        
+        print("🔄 Live Activity updated with animation: \(animation)")
     }
     
     @available(iOS 16.2, *)
@@ -161,7 +238,7 @@ struct PetWidgetData: Codable {
     let lastUpdate: Date
 }
 
-// MARK: - Live Activity Attributes
+// MARK: - Live Activity
 
 @available(iOS 16.2, *)
 struct PetActivityAttributes: ActivityAttributes {
@@ -173,22 +250,23 @@ struct PetActivityAttributes: ActivityAttributes {
         let healthState: String
         
         // Status bars (0-100)
-        let hunger: Int
-        let happiness: Int
-        let energy: Int
+        let hunger: Int      // Fullness/hunger level
+        let happiness: Int   // Mood level (mapped to 0-100)
+        let energy: Int      // Pet energy/tiredness
         
         // Economy
-        let energyBalance: Int
+        let energyBalance: Int  // Currency
         
         // Flags
         let isFragile: Bool
         let isSleeping: Bool
-        let needsAttention: Bool
-        let isCritical: Bool
+        let needsAttention: Bool  // Yellow status
+        let isCritical: Bool      // Red status
         
-        // Animation state ("", "eating", "playing", "petting")
-        let currentAnimation: String
+        // Animation state (empty = idle, "eating", "playing", "petting")
+        var currentAnimation: String = ""
         
+        // Status color helper
         var statusColor: String {
             if isCritical { return "red" }
             if needsAttention { return "yellow" }
@@ -200,3 +278,4 @@ struct PetActivityAttributes: ActivityAttributes {
     let userId: UUID
     let petId: UUID
 }
+
