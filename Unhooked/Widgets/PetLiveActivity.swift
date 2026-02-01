@@ -9,26 +9,8 @@ import SwiftUI
 import ActivityKit
 import WidgetKit
 
-// MARK: - Dynamic Island Pixel Pet (Peeking)
+// MARK: - Pixel Pet Head (for Dynamic Island)
 
-struct DynamicIslandPixelPet: View {
-    let species: String
-    let stage: Int
-    let size: CGFloat
-    let peeking: Bool  // If true, only show head peeking from edge
-    
-    var body: some View {
-        if peeking {
-            // Peeking pet - offset to show just part of it
-            PixelPetHead(species: species, scale: size / 10)
-                .offset(y: -size * 0.2)  // Peek from top
-        } else {
-            PixelPetHead(species: species, scale: size / 10)
-        }
-    }
-}
-
-// Simplified pixel pet head for Dynamic Island
 struct PixelPetHead: View {
     let species: String
     let scale: CGFloat
@@ -50,7 +32,6 @@ struct PixelPetHead: View {
     
     private func getHeadPixels() -> [[String]] {
         if species == "cat" {
-            // Cute cat head with ears - 10x8 pixels
             return [
                 [".", "K", ".", ".", ".", ".", ".", ".", "K", "."],
                 [".", "K", "K", ".", ".", ".", ".", "K", "K", "."],
@@ -62,7 +43,6 @@ struct PixelPetHead: View {
                 [".", ".", "K", "K", "K", "K", "K", "K", ".", "."],
             ]
         } else {
-            // Cute dog head with floppy ears - 10x8 pixels
             return [
                 ["E", "E", ".", ".", ".", ".", ".", ".", "E", "E"],
                 ["E", "O", "E", ".", ".", ".", ".", "E", "O", "E"],
@@ -80,14 +60,13 @@ struct PixelPetHead: View {
         switch pixel {
         case ".": return .clear
         case "K": return .black
-        case "W": return .white
-        case "O": return Color(red: 1.0, green: 0.65, blue: 0.0) // Orange (cat)
-        case "G": return Color(red: 0.56, green: 0.93, blue: 0.56) // Light green (eyes)
-        case "g": return Color(red: 0.13, green: 0.55, blue: 0.13) // Dark green (pupils)
-        case "P": return Color(red: 1.0, green: 0.71, blue: 0.76) // Pink (nose/mouth)
-        case "C": return Color(red: 1.0, green: 0.89, blue: 0.77) // Cream (dog)
-        case "E": return Color(red: 0.55, green: 0.27, blue: 0.07) // Brown (ears)
-        case "N": return Color(red: 0.2, green: 0.2, blue: 0.2) // Dark (nose)
+        case "O": return Color(red: 1.0, green: 0.65, blue: 0.0)
+        case "G": return Color(red: 0.56, green: 0.93, blue: 0.56)
+        case "g": return Color(red: 0.13, green: 0.55, blue: 0.13)
+        case "P": return Color(red: 1.0, green: 0.71, blue: 0.76)
+        case "C": return Color(red: 1.0, green: 0.89, blue: 0.77)
+        case "E": return Color(red: 0.55, green: 0.27, blue: 0.07)
+        case "N": return Color(red: 0.2, green: 0.2, blue: 0.2)
         default: return .clear
         }
     }
@@ -99,22 +78,17 @@ struct PixelPetHead: View {
 struct PetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PetActivityAttributes.self) { context in
-            // Lock screen/banner UI
-            liveActivityView(context: context)
+            // Lock screen banner
+            lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI
+                // EXPANDED STATE
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 8) {
-                        DynamicIslandPixelPet(
-                            species: context.state.petSpecies,
-                            stage: context.state.petStage,
-                            size: 40,
-                            peeking: false
-                        )
+                        PixelPetHead(species: context.state.petSpecies, scale: 4)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(context.state.petSpecies.capitalized)
+                            Text(context.state.petName)
                                 .font(.caption)
                                 .fontWeight(.semibold)
                             Text("Stage \(context.state.petStage)")
@@ -131,7 +105,6 @@ struct PetLiveActivity: Widget {
                                 .foregroundStyle(.pink)
                             Text("\(context.state.hunger)%")
                         }
-                        
                         HStack(spacing: 3) {
                             Image(systemName: "bolt.fill")
                                 .foregroundStyle(.yellow)
@@ -142,18 +115,37 @@ struct PetLiveActivity: Widget {
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing: 16) {
-                        statBadge(
-                            icon: "heart.fill",
-                            value: "\(context.state.hunger)%",
-                            color: .pink
-                        )
+                    // ACTION BUTTONS
+                    HStack(spacing: 12) {
+                        Link(destination: URL(string: "unhooked://action/feed")!) {
+                            VStack(spacing: 2) {
+                                Text("🍎").font(.system(size: 16))
+                                Text("Feed").font(.system(size: 9))
+                            }
+                            .frame(width: 44, height: 36)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                        }
                         
-                        statBadge(
-                            icon: "bolt.fill",
-                            value: "\(context.state.energyBalance)",
-                            color: .yellow
-                        )
+                        Link(destination: URL(string: "unhooked://action/play")!) {
+                            VStack(spacing: 2) {
+                                Text("🎾").font(.system(size: 16))
+                                Text("Play").font(.system(size: 9))
+                            }
+                            .frame(width: 44, height: 36)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        
+                        Link(destination: URL(string: "unhooked://action/pet")!) {
+                            VStack(spacing: 2) {
+                                Text("✋").font(.system(size: 16))
+                                Text("Pet").font(.system(size: 9))
+                            }
+                            .frame(width: 44, height: 36)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                        }
                         
                         Spacer()
                         
@@ -161,16 +153,14 @@ struct PetLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                // Compact leading: Show pixel pet head peeking
-                DynamicIslandPixelPet(
-                    species: context.state.petSpecies,
-                    stage: context.state.petStage,
-                    size: 24,
-                    peeking: false
-                )
-                .padding(.leading, 2)
+                // COMPACT: Pet peeking above - use frame + offset
+                ZStack {
+                    PixelPetHead(species: context.state.petSpecies, scale: 2.5)
+                        .offset(y: -8) // Push up to peek above
+                }
+                .frame(width: 28, height: 28)
+                .clipped()
             } compactTrailing: {
-                // Compact trailing: Energy count
                 HStack(spacing: 2) {
                     Image(systemName: "bolt.fill")
                         .foregroundStyle(.yellow)
@@ -179,44 +169,35 @@ struct PetLiveActivity: Widget {
                 }
                 .font(.caption2)
             } minimal: {
-                // Minimal: Just the pixel pet peeking
-                DynamicIslandPixelPet(
-                    species: context.state.petSpecies,
-                    stage: context.state.petStage,
-                    size: 20,
-                    peeking: true
-                )
+                // MINIMAL: Pet peeking
+                ZStack {
+                    PixelPetHead(species: context.state.petSpecies, scale: 2)
+                        .offset(y: -6)
+                }
+                .frame(width: 22, height: 22)
+                .clipped()
             }
         }
     }
     
     // MARK: - Lock Screen View
     
-    private func liveActivityView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
+    private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
-            // Pixel pet on lock screen
-            DynamicIslandPixelPet(
-                species: context.state.petSpecies,
-                stage: context.state.petStage,
-                size: 40,
-                peeking: false
-            )
+            PixelPetHead(species: context.state.petSpecies, scale: 5)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(context.state.petSpecies.capitalized) • Stage \(context.state.petStage)")
+                Text("\(context.state.petName) • Stage \(context.state.petStage)")
                     .font(.caption)
                     .fontWeight(.medium)
                 
                 HStack(spacing: 12) {
                     HStack(spacing: 3) {
-                        Image(systemName: "heart.fill")
-                            .foregroundStyle(.pink)
+                        Image(systemName: "heart.fill").foregroundStyle(.pink)
                         Text("\(context.state.hunger)%")
                     }
-                    
                     HStack(spacing: 3) {
-                        Image(systemName: "bolt.fill")
-                            .foregroundStyle(.yellow)
+                        Image(systemName: "bolt.fill").foregroundStyle(.yellow)
                         Text("\(context.state.energyBalance)")
                     }
                 }
@@ -231,20 +212,7 @@ struct PetLiveActivity: Widget {
         .background(Color(.systemBackground))
     }
     
-    // MARK: - Helpers
-    
-    private func statBadge(icon: String, value: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-            Text(value)
-                .monospacedDigit()
-        }
-        .font(.caption2)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.2), in: Capsule())
-    }
+    // MARK: - Health Badge
     
     private func healthBadge(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         let state = context.state.healthState
@@ -262,4 +230,3 @@ struct PetLiveActivity: Widget {
         .background(color.opacity(0.2), in: Capsule())
     }
 }
-
