@@ -187,7 +187,7 @@ class WidgetService {
         let needsAttention = hungerLevel < 50 || happinessLevel < 50
         let isCritical = hungerLevel < 20 || pet.healthState == .sick || pet.healthState == .dead
         
-        var updatedState = PetActivityAttributes.ContentState(
+        let updatedState = PetActivityAttributes.ContentState(
             petSpecies: pet.species.rawValue,
             petStage: pet.stage,
             petName: pet.name.isEmpty ? pet.species.rawValue.capitalized : pet.name,
