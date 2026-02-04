@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet peeks from top edge
+//  Dynamic Island - Pet ABOVE island using expanded region trick
 //
 
 import SwiftUI
@@ -80,104 +80,113 @@ struct PetLiveActivity: Widget {
             lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // EXPANDED
+                // ========================================
+                // EXPANDED STATE - Where pet appears ABOVE
+                // ========================================
+                
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 8) {
-                        PixelPetSprite(species: context.state.petSpecies, scale: 4)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(context.state.petName).font(.caption).fontWeight(.semibold)
-                            Text("Stage \(context.state.petStage)").font(.caption2).foregroundStyle(.secondary)
-                        }
-                    }
+                    // Pet ABOVE the island using negative offset trick
+                    petAboveIslandView(species: context.state.petSpecies)
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing, spacing: 4) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "heart.fill").foregroundStyle(.pink)
-                            Text("\(context.state.hunger)%")
-                        }
-                        HStack(spacing: 3) {
-                            Image(systemName: "bolt.fill").foregroundStyle(.yellow)
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
                             Text("\(context.state.energyBalance)")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
                         }
+                        
+                        Text("\(context.state.hunger)% Full")
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.7))
                     }
-                    .font(.caption2)
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack(spacing: 12) {
                         Link(destination: URL(string: "unhooked://action/feed")!) {
-                            VStack(spacing: 2) {
-                                Text("🍎").font(.system(size: 16))
-                                Text("Feed").font(.system(size: 9))
-                            }
-                            .frame(width: 44, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(8)
+                            actionButton(icon: "🍎", label: "Feed")
                         }
-                        
                         Link(destination: URL(string: "unhooked://action/play")!) {
-                            VStack(spacing: 2) {
-                                Text("🎾").font(.system(size: 16))
-                                Text("Play").font(.system(size: 9))
-                            }
-                            .frame(width: 44, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(8)
+                            actionButton(icon: "🎾", label: "Play")
                         }
-                        
                         Link(destination: URL(string: "unhooked://action/pet")!) {
-                            VStack(spacing: 2) {
-                                Text("✋").font(.system(size: 16))
-                                Text("Pet").font(.system(size: 9))
-                            }
-                            .frame(width: 44, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(8)
+                            actionButton(icon: "✋", label: "Pet")
                         }
-                        
-                        Spacer()
-                        
-                        let healthColor: Color = context.state.healthState == "healthy" ? .green : .orange
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text(context.state.healthState.capitalized)
-                        }
-                        .font(.caption2)
-                        .foregroundStyle(healthColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(healthColor.opacity(0.2), in: Capsule())
                     }
+                    .padding(.horizontal)
                 }
+                
             } compactLeading: {
-                // Pet aligned to TOP of the compact area
-                // This positions it at the top edge of the island
-                VStack {
-                    PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
-                    Spacer(minLength: 0)
-                }
-                .frame(height: 36)
-                .padding(.leading, 4)
-                    
+                // Simple icon in compact - prompts expansion
+                PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
+                    .frame(width: 28, height: 28)
+                
             } compactTrailing: {
-                HStack(spacing: 3) {
+                HStack(spacing: 2) {
                     Circle()
-                        .fill(context.state.isCritical ? Color.red : (context.state.needsAttention ? Color.orange : Color.green))
+                        .fill(Color.green)
                         .frame(width: 6, height: 6)
                     Text("\(context.state.energyBalance)")
-                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
                 }
+                
             } minimal: {
-                VStack {
-                    PixelPetSprite(species: context.state.petSpecies, scale: 2)
-                    Spacer(minLength: 0)
-                }
-                .frame(height: 28)
+                PixelPetSprite(species: context.state.petSpecies, scale: 2)
+                    .frame(width: 22, height: 22)
             }
         }
     }
+    
+    // MARK: - Pet ABOVE Island View (The Magic!)
+    
+    @ViewBuilder
+    func petAboveIslandView(species: String) -> some View {
+        ZStack(alignment: .topLeading) {
+            // Invisible container that extends beyond clipping
+            Color.clear
+                .frame(width: 120, height: 140)
+            
+            VStack(spacing: 0) {
+                // ✅ THE KEY: Pet with negative offset pushes ABOVE the black area
+                PixelPetSprite(species: species, scale: 5)
+                    .offset(y: -65)  // 🎯 This pushes pet ABOVE the island!
+                    .shadow(
+                        color: .black.opacity(0.4),
+                        radius: 3,
+                        x: 0,
+                        y: 3
+                    )
+                
+                Spacer()
+            }
+            .frame(height: 140)
+        }
+    }
+    
+    // MARK: - Action Button
+    
+    @ViewBuilder
+    func actionButton(icon: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(icon)
+                .font(.system(size: 20))
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    // MARK: - Lock Screen View
     
     private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
