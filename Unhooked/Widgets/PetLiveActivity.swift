@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet ABOVE island using expanded region trick
+//  Dynamic Island - Pet above island in expanded view
 //
 
 import SwiftUI
@@ -80,110 +80,84 @@ struct PetLiveActivity: Widget {
             lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // ========================================
-                // EXPANDED STATE - Where pet appears ABOVE
-                // ========================================
-                
+                // EXPANDED STATE
                 DynamicIslandExpandedRegion(.leading) {
-                    // Pet ABOVE the island using negative offset trick
-                    petAboveIslandView(species: context.state.petSpecies)
+                    // Pet with negative offset to appear ABOVE
+                    PixelPetSprite(species: context.state.petSpecies, scale: 5)
+                        .offset(y: -50)  // Push above the black area
+                        .shadow(color: .black.opacity(0.5), radius: 2, y: 2)
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: 6) {
                         HStack(spacing: 4) {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 8, height: 8)
+                            Circle().fill(Color.green).frame(width: 8, height: 8)
                             Text("\(context.state.energyBalance)")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
+                                .font(.system(size: 20, weight: .bold))
                         }
-                        
                         Text("\(context.state.hunger)% Full")
                             .font(.caption2)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundStyle(.secondary)
                     }
+                }
+                
+                DynamicIslandExpandedRegion(.center) {
+                    Text(context.state.petName)
+                        .font(.caption)
+                        .fontWeight(.medium)
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         Link(destination: URL(string: "unhooked://action/feed")!) {
-                            actionButton(icon: "🍎", label: "Feed")
+                            VStack(spacing: 4) {
+                                Text("🍎").font(.title2)
+                                Text("Feed").font(.caption2)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(12)
                         }
+                        
                         Link(destination: URL(string: "unhooked://action/play")!) {
-                            actionButton(icon: "🎾", label: "Play")
+                            VStack(spacing: 4) {
+                                Text("🎾").font(.title2)
+                                Text("Play").font(.caption2)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(12)
                         }
+                        
                         Link(destination: URL(string: "unhooked://action/pet")!) {
-                            actionButton(icon: "✋", label: "Pet")
+                            VStack(spacing: 4) {
+                                Text("✋").font(.title2)
+                                Text("Pet").font(.caption2)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(12)
                         }
                     }
-                    .padding(.horizontal)
                 }
                 
             } compactLeading: {
-                // Simple icon in compact - prompts expansion
                 PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
-                    .frame(width: 28, height: 28)
                 
             } compactTrailing: {
-                HStack(spacing: 2) {
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: 6, height: 6)
+                HStack(spacing: 3) {
+                    Circle().fill(Color.green).frame(width: 6, height: 6)
                     Text("\(context.state.energyBalance)")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
                 }
                 
             } minimal: {
                 PixelPetSprite(species: context.state.petSpecies, scale: 2)
-                    .frame(width: 22, height: 22)
             }
         }
-    }
-    
-    // MARK: - Pet ABOVE Island View (The Magic!)
-    
-    @ViewBuilder
-    func petAboveIslandView(species: String) -> some View {
-        ZStack(alignment: .topLeading) {
-            // Invisible container that extends beyond clipping
-            Color.clear
-                .frame(width: 120, height: 140)
-            
-            VStack(spacing: 0) {
-                // ✅ THE KEY: Pet with negative offset pushes ABOVE the black area
-                PixelPetSprite(species: species, scale: 5)
-                    .offset(y: -65)  // 🎯 This pushes pet ABOVE the island!
-                    .shadow(
-                        color: .black.opacity(0.4),
-                        radius: 3,
-                        x: 0,
-                        y: 3
-                    )
-                
-                Spacer()
-            }
-            .frame(height: 140)
-        }
-    }
-    
-    // MARK: - Action Button
-    
-    @ViewBuilder
-    func actionButton(icon: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(icon)
-                .font(.system(size: 20))
-            Text(label)
-                .font(.system(size: 10))
-                .foregroundColor(.white.opacity(0.7))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(8)
     }
     
     // MARK: - Lock Screen View
