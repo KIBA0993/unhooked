@@ -2,7 +2,8 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet ABOVE island in COMPACT state
+//  Dynamic Island - Pet ABOVE island using EXPANDED state trick
+//  The expanded state auto-shows on iPhone 14 Pro+ and allows overflow
 //
 
 import SwiftUI
@@ -80,93 +81,106 @@ struct PetLiveActivity: Widget {
             lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // EXPANDED STATE
+                // ================================================
+                // EXPANDED STATE - This is where pet appears ABOVE
+                // The expanded state auto-shows on iPhone 14 Pro+
+                // ================================================
+                
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 8) {
-                        PixelPetSprite(species: context.state.petSpecies, scale: 4)
-                        VStack(alignment: .leading) {
-                            Text(context.state.petName).font(.caption).bold()
-                            Text("Stage \(context.state.petStage)").font(.caption2).foregroundStyle(.secondary)
+                    // Pet ABOVE the island using ZStack + negative offset
+                    ZStack(alignment: .topLeading) {
+                        // Invisible container extending beyond visible region
+                        Color.clear
+                            .frame(width: 120, height: 140)
+                        
+                        // Pet with negative offset pushes ABOVE the black area
+                        VStack(spacing: 0) {
+                            PixelPetSprite(species: context.state.petSpecies, scale: 5)
+                                .offset(y: -65)  // 🎯 THE KEY: Negative offset!
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 3)
+                            
+                            Spacer()
                         }
+                        .frame(height: 140)
                     }
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing, spacing: 4) {
                         HStack(spacing: 4) {
-                            Circle().fill(Color.green).frame(width: 8, height: 8)
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
                             Text("\(context.state.energyBalance)")
                                 .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
                         }
+                        
                         Text("\(context.state.hunger)% Full")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.white.opacity(0.7))
                     }
+                }
+                
+                DynamicIslandExpandedRegion(.center) {
+                    // Can be empty or show pet name
+                    Color.clear
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         Link(destination: URL(string: "unhooked://action/feed")!) {
-                            VStack(spacing: 4) {
-                                Text("🍎").font(.title2)
-                                Text("Feed").font(.caption2)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(12)
+                            actionButton(icon: "🍎", label: "Feed")
                         }
-                        
                         Link(destination: URL(string: "unhooked://action/play")!) {
-                            VStack(spacing: 4) {
-                                Text("🎾").font(.title2)
-                                Text("Play").font(.caption2)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(12)
+                            actionButton(icon: "🎾", label: "Play")
                         }
-                        
                         Link(destination: URL(string: "unhooked://action/pet")!) {
-                            VStack(spacing: 4) {
-                                Text("✋").font(.title2)
-                                Text("Pet").font(.caption2)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(12)
+                            actionButton(icon: "✋", label: "Pet")
                         }
                     }
+                    .padding(.horizontal)
                 }
                 
             } compactLeading: {
-                // 🎯 PET ABOVE ISLAND - Like Hit'Em!
-                ZStack {
-                    PixelPetSprite(species: context.state.petSpecies, scale: 3)
-                        .offset(y: -20)  // Push pet ABOVE the island
-                }
-                .frame(width: 36, height: 36)
+                // Simple icon when collapsed - prompts user to expand
+                PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
+                    .frame(width: 28, height: 28)
                 
             } compactTrailing: {
-                HStack(spacing: 3) {
-                    Circle().fill(Color.green).frame(width: 6, height: 6)
+                HStack(spacing: 2) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 6, height: 6)
                     Text("\(context.state.energyBalance)")
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
                 }
                 
             } minimal: {
-                // Minimal - also pet above
-                ZStack {
-                    PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
-                        .offset(y: -16)
-                }
-                .frame(width: 28, height: 28)
+                PixelPetSprite(species: context.state.petSpecies, scale: 2)
+                    .frame(width: 22, height: 22)
             }
         }
     }
     
+    // MARK: - Action Button
+    @ViewBuilder
+    func actionButton(icon: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(icon)
+                .font(.system(size: 20))
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    // MARK: - Lock Screen View
     private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
             PixelPetSprite(species: context.state.petSpecies, scale: 5)
