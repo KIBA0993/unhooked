@@ -2,8 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet ABOVE island using EXPANDED state trick
-//  The expanded state auto-shows on iPhone 14 Pro+ and allows overflow
+//  Dynamic Island - Pet ABOVE island using OVERLAY HACK
 //
 
 import SwiftUI
@@ -81,28 +80,32 @@ struct PetLiveActivity: Widget {
             lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // ================================================
-                // EXPANDED STATE - This is where pet appears ABOVE
-                // The expanded state auto-shows on iPhone 14 Pro+
-                // ================================================
+                
+                // ============================================
+                // METHOD 1: OVERLAY HACK - Bypasses clipping!
+                // ============================================
                 
                 DynamicIslandExpandedRegion(.leading) {
-                    // Pet ABOVE the island using ZStack + negative offset
-                    ZStack(alignment: .topLeading) {
-                        // Invisible container extending beyond visible region
-                        Color.clear
-                            .frame(width: 120, height: 140)
-                        
-                        // Pet with negative offset pushes ABOVE the black area
-                        VStack(spacing: 0) {
-                            PixelPetSprite(species: context.state.petSpecies, scale: 5)
-                                .offset(y: -65)  // 🎯 THE KEY: Negative offset!
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 3)
-                            
-                            Spacer()
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(width: 80, height: 120)
+                        .overlay(alignment: .topLeading) {
+                            // Pet positioned OUTSIDE the overlay container
+                            PixelPetSprite(
+                                species: context.state.petSpecies,
+                                scale: 5
+                            )
+                            .frame(width: 50, height: 40)
+                            .offset(x: 10, y: -50)  // ✅ Extends BEYOND the region
+                            .allowsHitTesting(false)
+                            .shadow(
+                                color: .black.opacity(0.4),
+                                radius: 3,
+                                x: 0,
+                                y: 3
+                            )
                         }
-                        .frame(height: 140)
-                    }
+                        .clipped(antialiased: false)  // Disable clipping
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
@@ -122,11 +125,6 @@ struct PetLiveActivity: Widget {
                     }
                 }
                 
-                DynamicIslandExpandedRegion(.center) {
-                    // Can be empty or show pet name
-                    Color.clear
-                }
-                
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack(spacing: 12) {
                         Link(destination: URL(string: "unhooked://action/feed")!) {
@@ -143,7 +141,6 @@ struct PetLiveActivity: Widget {
                 }
                 
             } compactLeading: {
-                // Simple icon when collapsed - prompts user to expand
                 PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
                     .frame(width: 28, height: 28)
                 
