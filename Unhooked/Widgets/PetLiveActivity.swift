@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet ABOVE island
+//  Dynamic Island - Pet ABOVE island in COMPACT state
 //
 
 import SwiftUI
@@ -82,34 +82,26 @@ struct PetLiveActivity: Widget {
             DynamicIsland {
                 // EXPANDED STATE
                 DynamicIslandExpandedRegion(.leading) {
-                    // THE TRICK: VStack with fixed height, pet with offset, then Spacer
-                    VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 8) {
                         PixelPetSprite(species: context.state.petSpecies, scale: 4)
-                            .frame(width: 40, height: 32)
-                            .offset(y: -70)  // 🎯 Aggressive offset to push ABOVE
-                            .shadow(color: .black.opacity(0.5), radius: 3, y: 3)
-                        
-                        Spacer()
+                        VStack(alignment: .leading) {
+                            Text(context.state.petName).font(.caption).bold()
+                            Text("Stage \(context.state.petStage)").font(.caption2).foregroundStyle(.secondary)
+                        }
                     }
-                    .frame(height: 100)  // Large container
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 6) {
+                    VStack(alignment: .trailing, spacing: 4) {
                         HStack(spacing: 4) {
                             Circle().fill(Color.green).frame(width: 8, height: 8)
                             Text("\(context.state.energyBalance)")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 18, weight: .bold))
                         }
                         Text("\(context.state.hunger)% Full")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
-                }
-                
-                DynamicIslandExpandedRegion(.center) {
-                    Text(context.state.petName)
-                        .font(.headline)
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
@@ -150,7 +142,12 @@ struct PetLiveActivity: Widget {
                 }
                 
             } compactLeading: {
-                PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
+                // 🎯 PET ABOVE ISLAND - Like Hit'Em!
+                ZStack {
+                    PixelPetSprite(species: context.state.petSpecies, scale: 3)
+                        .offset(y: -20)  // Push pet ABOVE the island
+                }
+                .frame(width: 36, height: 36)
                 
             } compactTrailing: {
                 HStack(spacing: 3) {
@@ -160,7 +157,12 @@ struct PetLiveActivity: Widget {
                 }
                 
             } minimal: {
-                PixelPetSprite(species: context.state.petSpecies, scale: 2)
+                // Minimal - also pet above
+                ZStack {
+                    PixelPetSprite(species: context.state.petSpecies, scale: 2.5)
+                        .offset(y: -16)
+                }
+                .frame(width: 28, height: 28)
             }
         }
     }
