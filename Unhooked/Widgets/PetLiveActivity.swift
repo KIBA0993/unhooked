@@ -2,7 +2,7 @@
 //  PetLiveActivity.swift
 //  Unhooked
 //
-//  Dynamic Island - Pet above island in expanded view
+//  Dynamic Island - Pet ABOVE island
 //
 
 import SwiftUI
@@ -82,10 +82,16 @@ struct PetLiveActivity: Widget {
             DynamicIsland {
                 // EXPANDED STATE
                 DynamicIslandExpandedRegion(.leading) {
-                    // Pet with negative offset to appear ABOVE
-                    PixelPetSprite(species: context.state.petSpecies, scale: 5)
-                        .offset(y: -50)  // Push above the black area
-                        .shadow(color: .black.opacity(0.5), radius: 2, y: 2)
+                    // THE TRICK: VStack with fixed height, pet with offset, then Spacer
+                    VStack(alignment: .leading, spacing: 0) {
+                        PixelPetSprite(species: context.state.petSpecies, scale: 4)
+                            .frame(width: 40, height: 32)
+                            .offset(y: -70)  // 🎯 Aggressive offset to push ABOVE
+                            .shadow(color: .black.opacity(0.5), radius: 3, y: 3)
+                        
+                        Spacer()
+                    }
+                    .frame(height: 100)  // Large container
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
@@ -103,8 +109,7 @@ struct PetLiveActivity: Widget {
                 
                 DynamicIslandExpandedRegion(.center) {
                     Text(context.state.petName)
-                        .font(.caption)
-                        .fontWeight(.medium)
+                        .font(.headline)
                 }
                 
                 DynamicIslandExpandedRegion(.bottom) {
@@ -116,7 +121,7 @@ struct PetLiveActivity: Widget {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.1))
+                            .background(Color.white.opacity(0.15))
                             .cornerRadius(12)
                         }
                         
@@ -127,7 +132,7 @@ struct PetLiveActivity: Widget {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.1))
+                            .background(Color.white.opacity(0.15))
                             .cornerRadius(12)
                         }
                         
@@ -138,7 +143,7 @@ struct PetLiveActivity: Widget {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.1))
+                            .background(Color.white.opacity(0.15))
                             .cornerRadius(12)
                         }
                     }
@@ -159,8 +164,6 @@ struct PetLiveActivity: Widget {
             }
         }
     }
-    
-    // MARK: - Lock Screen View
     
     private func lockScreenView(context: ActivityViewContext<PetActivityAttributes>) -> some View {
         HStack(spacing: 12) {
