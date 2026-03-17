@@ -18,6 +18,7 @@ struct SettingsView: View {
     @AppStorage("widget.enabled") private var widgetEnabled = true
     @AppStorage("widget.showStats") private var showWidgetStats = true
     @AppStorage("dynamicIsland.enabled") private var dynamicIslandEnabled = true
+    @AppStorage("dynamicIslandPet.enabled") private var dynamicIslandPetEnabled = true
     
     @State private var showingPurchaseGems = false
     @State private var showingTutorial = false
@@ -370,6 +371,22 @@ struct SettingsView: View {
                             )
                             
                             rowDivider()
+                            
+                            // Dynamic Island Pet Overlay
+                            if DeviceInfo.hasDynamicIsland {
+                                SettingsRow(
+                                    icon: "pawprint.fill",
+                                    iconColor: Color(red: 0.95, green: 0.6, blue: 0.4),
+                                    title: "Pet Above Island",
+                                    trailing: {
+                                        Toggle("", isOn: $dynamicIslandPetEnabled)
+                                            .labelsHidden()
+                                    },
+                                    subtitle: "Show animated pet walking above Dynamic Island"
+                                )
+                                
+                                rowDivider()
+                            }
                             
                             // Show Detailed Stats
                             SettingsRow(
